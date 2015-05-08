@@ -19,6 +19,7 @@ typedef LinkedList  BencodeList;
 // of BencodeDictEntry
 typedef LinkedList  BencodeDict;
 
+typedef struct BencodeValue {
     BencodeType type;
     union {
       struct { BencodeString    string;  };
