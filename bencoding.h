@@ -47,3 +47,5 @@ int b_parse_int(char *string, int len, int *pos, BencodeValue *dst);
 int b_parse_list(char *string, int len, int *pos, BencodeValue *dst);
 
 int b_parse_dict(char *string, int len, int *pos, BencodeValue *dst);
+
+BencodeValue *dict_lookup(BencodeDict *dict, char *key);

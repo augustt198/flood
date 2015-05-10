@@ -142,3 +142,15 @@ int b_parse_dict(char *string, int len, int *pos, BencodeValue *dst) {
     dst->dict = dict;
     return 0;
 }
+
+BencodeValue *dict_lookup(BencodeDict *dict, char *key) {
+    iter_start(dict);
+    while (iter_has_next(dict)) {
+        BencodeDictEntry *entry;
+        iter_next(dict, &entry);
+        if (strcmp(entry->key, key) == 0)
+            return entry->value;
+    }
+
+    return 0;
+}
