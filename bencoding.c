@@ -1,13 +1,15 @@
 #include "bencoding.h"
 
+#define EOF_CHECK(_pos, _len)\
+    if (*_pos >= _len) return -1;
+
 int bencode_parse(char *string, int len, BencodeValue *dst) {
     int pos = 0;
     return b_parse_any(string, len, &pos, dst);
 }
 
 int b_parse_any(char *string, int len, int *pos, BencodeValue *dst) {
-    if (*pos >= len)
-        return -1;
+    EOF_CHECK(pos, len);
     char prefix = string[*pos];
     *pos += 1;
     switch (prefix) {
@@ -36,8 +38,7 @@ int b_parse_string(char *string, int len, int *pos,
     while (isdigit(string[*pos])) {
         n = n * 10 + (string[*pos] - '0');
         *pos += 1;
-        if (*pos >= len)
-            return -1;
+        EOF_CHECK(pos, len);
     }
 
     if (string[*pos] != ':')
@@ -47,8 +48,7 @@ int b_parse_string(char *string, int len, int *pos,
     // add 1 to include \0 at end
     char *parsed_str = malloc(n + 1);
     for (int i = 0; i < n; i++) {
-        if (*pos >= len)
-            return -1;
+        EOF_CHECK(pos, len);
         parsed_str[i] = string[*pos];
         *pos += 1;
     }
@@ -62,8 +62,7 @@ int b_parse_string(char *string, int len, int *pos,
 int b_parse_int(char *string, int len,
                 int *pos, BencodeValue *dst) {
 
-    if (*pos >= len)
-        return -1;
+    EOF_CHECK(pos, len);
 
     bool neg = false;
     if (string[*pos] == '-') {
@@ -75,8 +74,7 @@ int b_parse_int(char *string, int len,
     while (isdigit(string[*pos])) {
         num = num * 10 + (string[*pos] - '0');
         *pos += 1;
-        if (*pos >= len)
-            return -1;
+        EOF_CHECK(pos, len);
     }
     if (neg)
         num *= -1;
@@ -93,8 +91,7 @@ int b_parse_int(char *string, int len,
 }
 
 int b_parse_list(char *string, int len, int *pos, BencodeValue *dst) {
-    if (*pos >= len)
-        return -1;
+    EOF_CHECK(pos, len);
     LinkedList *list = malloc(sizeof(LinkedList));
     linked_list_new(list, sizeof(BencodeValue*));
 
@@ -102,8 +99,7 @@ int b_parse_list(char *string, int len, int *pos, BencodeValue *dst) {
         BencodeValue *elem = malloc(sizeof(BencodeValue));
         int code = b_parse_any(string, len, pos, elem);
         linked_list_append(list, &elem);
-        if (*pos >= len)
-            return -1;
+        EOF_CHECK(pos, len);
     }
 
     *pos += 1;
@@ -115,8 +111,7 @@ int b_parse_list(char *string, int len, int *pos, BencodeValue *dst) {
 }
 
 int b_parse_dict(char *string, int len, int *pos, BencodeValue *dst) {
-    if (*pos >= len)
-        return -1;
+    EOF_CHECK(pos, len);
     LinkedList *dict = malloc(sizeof(LinkedList));
     linked_list_new(dict, sizeof(BencodeDictEntry*));
 
@@ -128,13 +123,11 @@ int b_parse_dict(char *string, int len, int *pos, BencodeValue *dst) {
         int code = b_parse_any(string, len, pos, &key);
         if (code != 0)
             return code;
-        if (*pos >= len)
-            return -1;
+        EOF_CHECK(pos, len);
         code = b_parse_any(string, len, pos, val);
         if (code != 0)
             return code;
-        if (*pos >= len)
-            return -1;
+        EOF_CHECK(pos, len);
 
         if (key.type != BENCODE_STRING)
             return -2;
