@@ -86,7 +86,7 @@ ssize_t receive_announce_response(AnnounceResponse *res, int sock) {
     return size;
 }
 
-int main() {
+int _main() {
     struct sockaddr_in addr;
     int sockfd = socket(AF_INET, SOCK_DGRAM, 0);
     bzero(&addr, sizeof(addr));
@@ -142,4 +142,6 @@ int main() {
         );
         peer = peer->next;
     }
+
+    return 0;
 }

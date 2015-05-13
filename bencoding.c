@@ -98,6 +98,8 @@ int b_parse_list(char *string, int len, int *pos, BencodeValue *dst) {
     while (string[*pos] != 'e') {
         BencodeValue *elem = malloc(sizeof(BencodeValue));
         int code = b_parse_any(string, len, pos, elem);
+        if (code != 0)
+            return code;
         linked_list_append(list, &elem);
         EOF_CHECK(pos, len);
     }
