@@ -1,0 +1,5 @@
+notifications:
+  email: false
+
+language: c
+script: "./build.sh"
