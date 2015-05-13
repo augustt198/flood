@@ -30,18 +30,18 @@ typedef struct ConnectResponse {
 ssize_t receive_connect_response(ConnectResponse* res, int sock);
 
 typedef struct AnnounceRequest {
-    int64_t connection_id;
-    int32_t action;
-    int32_t transaction_id;
-    int8_t info_hash[20];
-    int8_t peer_id[20];
-    int64_t downloaded;
-    int64_t left;
-    int64_t uploaded;
-    int32_t event;
+    int64_t  connection_id;
+    int32_t  action;
+    int32_t  transaction_id;
+    int8_t   info_hash[20];
+    int8_t   peer_id[20];
+    int64_t  downloaded;
+    int64_t  left;
+    int64_t  uploaded;
+    int32_t  event;
     uint32_t ip;
     uint32_t key;
-    int32_t num_want;
+    int32_t  num_want;
     uint16_t port;
     uint16_t extensions;
 } AnnounceRequest;
