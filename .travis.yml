@@ -2,4 +2,9 @@ notifications:
   email: false
 
 language: c
+
+before_install:
+  - sudo apt-get update -qq
+  - sudo apt-get install -y doxygen graphviz
+
 script: "chmod +x build.sh && ./build.sh"
