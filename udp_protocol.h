@@ -12,6 +12,18 @@
 #define ntohll(x) ((1==ntohl(1)) ? (x) : ((uint64_t)ntohl((x) & 0xFFFFFFFF) << 32) | ntohl((x) >> 32))
 #endif
 
+#define MAGIC_CONNECTION_ID 0x41727101980
+#define CONNECTION_ACTION   0
+#define ANNOUNCE_ACTION     1
+
+#define ANNOUNCE_EVENT_NONE      0
+#define ANNOUNCE_EVENT_COMPLETED 1
+#define ANNOUNCE_EVENT_STARTED   2
+#define ANNOUNCE_EVENT_STOPPED   3
+
+#define ANNOUNCE_NUM_WANT_DEFAULT -1
+#define ANNOUNCE_NO_EXTENSIONS    0
+
 typedef struct ConnectRequest {
     int64_t connection_id;
     int32_t action;
