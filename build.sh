@@ -1,7 +1,11 @@
 #/usr/bin/env/sh
 set -e
 
-mkdir -p bin/
+git clone https://github.com/nevali/uriparser.git
+cd uriparser
+./configure --disable-test
+make
+export URI_PARSER=`pwd`/src/*.o
+cd ..
 
-clang test.c bencoding.c linked_list.c -o bin/bencoding_test
-./bin/bencoding_test
+make
