@@ -55,8 +55,8 @@ ssize_t send_announce_request(AnnounceRequest *req,
 }
 
 ssize_t receive_announce_response(AnnounceResponse *res, int sock) {
-    char buffer[512];
-    ssize_t size = recvfrom(sock, buffer, 512, 0, NULL, NULL);
+    char buffer[1024];
+    ssize_t size = recvfrom(sock, buffer, 1024, 0, NULL, NULL);
     if (size < ANNOUNCE_RESPONSE_MIN_SIZE)
         return size;
 
