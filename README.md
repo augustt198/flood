@@ -29,3 +29,5 @@ Peers (82):
 - Handling HTTP trackers
 - Downloading from peers
 - Other stuff a BitTorrent client would do
+
+[![travis badge](https://api.travis-ci.org/augustt198/flood.svg)](https://travis-ci.org/augustt198/flood)
