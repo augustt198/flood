@@ -7,7 +7,6 @@ cd uriparser
 ./configure --disable-test
 make
 sudo make install
-export URI_PARSER=`pwd`/src/*.o
 cd ..
 
 make

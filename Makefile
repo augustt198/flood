@@ -1,8 +1,13 @@
 CC=clang
-CFLAGS=-Wall -g
+CFLAGS=-Wall -g -L/usr/local/lib -luriparser
 LD=clang++
-SOURCES=$(wildcard *.c) $(URI_PARSER)
+
+INCLUDES=-Iincludes/ -Iincludes/util/
+SOURCES=$(wildcard src/*.c) $(wildcard src/util/*.c)
 
 all: ${SOURCES}
 	@mkdir -p bin
-	$(CC) $(CFLAGS) $(SOURCES) -o bin/out
+	$(CC) $(CFLAGS) $(INCLUDES) $(SOURCES) -o bin/flood
+
+clean:
+	@rm bin/flood
