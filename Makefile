@@ -1,5 +1,5 @@
 CC=clang
-CFLAGS=-Wall -g -L/usr/local/lib -luriparser
+CFLAGS=-Wall -g -luriparser -lpthread
 LD=clang++
 
 INCLUDES=-Iincludes/ -Iincludes/util/
