@@ -21,7 +21,7 @@ Peers (82):
 
 ### Installation
 
-- Install Doxygen & Graphviz (needed by uriparser)
+- Install [uriparser](http://uriparser.sourceforge.net/) (may require Doxygen & Graphviz)
 - `sh build.sh`
 
 ### Todo
