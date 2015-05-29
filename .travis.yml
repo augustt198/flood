@@ -5,8 +5,8 @@ language: c
 
 before_install:
   - sudo apt-get update -qq
-  - sudo apt-get install -y liburiparser1 -qq
+  - sudo apt-get install -y doxygen graphviz -qq
   
 sudo: required
 
-script: make
+script: "chmod +x build.sh && ./build.sh"
