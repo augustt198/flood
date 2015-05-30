@@ -69,10 +69,10 @@ ssize_t receive_announce_response(AnnounceResponse *res, int sock) {
 
     res->peer_count = (size - ANNOUNCE_RESPONSE_MIN_SIZE) / 6;
 
-    PeerInfo *peer = 0;
+    PeerInfo *peer = NULL;
     for (int i = 20; i < size; i += 6) {
         PeerInfo *next_peer = malloc(sizeof(PeerInfo));
-        if (res->peers == NULL) {
+        if (peer == NULL) {
             res->peers = next_peer;
         } else {
             peer->next = next_peer;

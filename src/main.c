@@ -12,9 +12,9 @@
 #include <errno.h>
 
 #include "uri_util.h"
-#include "torrent.h"
-#include "udp_protocol.h"
 #include "peer_protocol.h"
+
+#include "swarm.h"
 
 
 void die(char *msg) {
@@ -59,12 +59,21 @@ struct ThreadInfo {
 void *handle_peer(void *peer);
 
 void handle_magnet(char *magnet) {
-    Torrent t;
-    magnet2torrent(&t, magnet);
+    Torrent *t = malloc(sizeof(Torrent));
+    magnet2torrent(t, magnet);
     
-    if (t.tracker_count < 1)
+    if (t->tracker_count < 1)
         die("No trackers found\n");
 
+    Client *client  = malloc(sizeof(Swarm));
+    client->peer_id = "CUSTOM_CLIENT_123456";
+    client->ip      = malloc(sizeof(struct in_addr));
+    discover_ip(client->ip);
+    client->port    = 1337;
+    Swarm *swarm    = malloc(sizeof(Swarm));
+    init_swarm(swarm, client, t);
+
+    /*
     char *tracker = t.trackers[0];
     UriUriA tracker_uri;
     parse_uri(&tracker_uri, tracker);
@@ -129,6 +138,7 @@ void handle_magnet(char *magnet) {
     for (int i = 0; i < a_resp.peer_count; i++) {
         pthread_join(threads[i], NULL);
     }
+    */
 }
 
 static const char *client_id_table[][2] = {
