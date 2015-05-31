@@ -12,7 +12,6 @@
 #include <errno.h>
 
 #include "uri_util.h"
-#include "peer_protocol.h"
 
 #include "swarm.h"
 
@@ -186,52 +185,4 @@ char *fmt_ver(char *ver) {
     }
 
     return fmt;
-}
-
-void *handle_peer(void *msg) {
-    struct ThreadInfo *info = (struct ThreadInfo*) msg;
-    PeerInfo *peer   = info->peer;
-    char *info_hash  = info->info_hash;
-    uint32_t ip = peer->ip;
-
-    struct sockaddr_in peeraddr;
-    peeraddr.sin_family         = AF_INET;
-    peeraddr.sin_addr.s_addr    = htonl(ip);
-    peeraddr.sin_port           = htons(peer->port);
-
-    int sock = socket(AF_INET, SOCK_STREAM, 0);
-    init_sock_opts(sock);
-    
-    int status = connect(sock, (struct sockaddr*) &peeraddr, sizeof(struct sockaddr_in));
-    if (status != 0) {
-        printf("error: %s\n", strerror(errno));
-        return NULL;
-    }
-
-    PeerHandshake h_req;
-    h_req.pstrlen = 19;
-    h_req.pstr = "BitTorrent protocol";
-    h_req.reserved = 1 << 20;
-    memcpy(&h_req.info_hash, info_hash, 20);
-    memcpy(&h_req.peer_id, "CUSTOM_CLIENT_123456", 20);
-
-    send_handshake_request(&h_req, sock, (struct sockaddr*) &peeraddr);
-
-    PeerHandshake h_res;
-    ssize_t r_size = receive_handshake_response(&h_res, sock);
-    if (r_size < 0) {
-        printf("cannot recv: %s\n", strerror(errno));
-        return NULL;
-    }
-
-    printf(
-            "%d.%d.%d.%d:%d client: %s %s\n",
-            ip >> 24, (ip >> 16) & 0xFF,
-            (ip >> 8) & 0xFF, ip & 0xFF,
-            peer->port,
-            client_name_lookup(h_res.peer_id + 1),
-            fmt_ver(h_res.peer_id + 3)
-    );
-
-    return NULL;
 }

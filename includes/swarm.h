@@ -8,8 +8,10 @@
 #include "linked_list.h"
 #include "uri_util.h"
 #include "torrent.h"
-#include "udp_protocol.h"
 #include "discover_ip.h"
+
+#include "udp_protocol.h"
+#include "peer_protocol.h"
 
 typedef struct Client {
     char *peer_id;
@@ -24,6 +26,7 @@ typedef struct Swarm {
     // sorted by IP address (ascending)
     LinkedList *peers;
     char       *peer_id;
+    // mutex for updating peer list
     pthread_mutex_t peer_mutex;
 } Swarm;
 
@@ -33,6 +36,8 @@ typedef struct Peer {
 
     bool alive;
     LinkedList *messages;
+
+    int sock; // socket
 } Peer;
 
 void init_swarm(Swarm *swarm, Client *c, Torrent *t);

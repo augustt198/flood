@@ -6,8 +6,10 @@
 
 #include "net.h"
 
+#define PROTOCOL_STR_LEN 19
+
 typedef struct PeerHandshake {
-    int32_t pstrlen;
+    uint8_t pstrlen;
     char*   pstr;
     int64_t reserved;
     char    info_hash[20];
@@ -17,6 +19,7 @@ typedef struct PeerHandshake {
 ssize_t send_handshake_request(PeerHandshake *req,
     int sock, struct sockaddr *addr);
 
-ssize_t receive_handshake_response(PeerHandshake *res, int sock);
+ssize_t receive_handshake_response(PeerHandshake *res,
+    int sock, uint8_t pstrlen);
 
 ssize_t prompt_peer(int sock, struct sockaddr *addr);

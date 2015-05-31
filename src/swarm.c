@@ -1,5 +1,75 @@
 #include "swarm.h"
 
+
+
+struct pr_info {
+    Swarm *swarm;
+    Peer  *peer;
+};
+
+void *handle_peer(void *data) {
+    struct pr_info *info = (struct pr_info*) data;
+    // Swarm *swarm = info->swarm;
+    Peer *peer   = info->peer;
+
+    PeerHandshake handshake;
+    receive_handshake_response(&handshake, peer->sock, PROTOCOL_STR_LEN);
+    for (int i = 0; i < 20; i++)
+        printf("%hhu ", handshake.peer_id[i]);
+    printf("\n");
+
+    free(info);
+
+    return NULL;
+}
+
+void *try_peer(void *data) {
+    //
+    struct pr_info *info = (struct pr_info*) data;
+    Swarm *swarm = info->swarm;
+    Peer *peer   = info->peer;
+
+    struct sockaddr_in peeraddr;
+    peeraddr.sin_family         = AF_INET;
+    peeraddr.sin_addr.s_addr    = htonl(peer->ip);
+    peeraddr.sin_port           = htons(peer->port);
+    int sock = socket(AF_INET, SOCK_STREAM, 0);
+    peer->sock = sock;
+    int status = connect(
+        sock, (struct sockaddr*) &peeraddr, sizeof(struct sockaddr_in)
+    );
+    if (status != 0) {
+        peer->alive = false;
+        free(info);
+        return NULL;
+    }
+
+    PeerHandshake h_req;
+    h_req.pstrlen = 19;
+    h_req.pstr = "BitTorrent protocol";
+    h_req.reserved = 1 << 20;
+    memcpy(&h_req.info_hash, swarm->torrent->info_hash, 20);
+    memcpy(&h_req.peer_id, "CUSTOM_CLIENT_123456", 20);
+
+    send_handshake_request(&h_req, sock, (struct sockaddr*) &peeraddr);
+
+    char plen;
+    int size = recv(sock, &plen, 1, 0);
+    if (size < 0) {
+        free(info);
+        return NULL;
+    }
+    if (plen == 19) {
+        printf(">> valid peer\n");
+        pthread_t thread;
+        pthread_create(&thread, NULL, handle_peer, info);
+    } else {
+        free(info);
+    }
+
+    return NULL;
+}
+
 // returns: whether or not the peer was added
 bool add_peer(Swarm *s, uint32_t ip, uint16_t port) {
     pthread_mutex_lock(&(s->peer_mutex));
@@ -32,6 +102,16 @@ bool add_peer(Swarm *s, uint32_t ip, uint16_t port) {
     linked_list_new(peer->messages, 0);
 
     linked_list_insert(l, idx, &peer);
+
+    if (idx % 5 == 0) {
+        printf(">> attemping peer request\n");
+        struct pr_info* info = malloc(sizeof(struct pr_info)); //{s, peer};
+        info->swarm = s;
+        info->peer  = peer;
+        pthread_t thread;
+        pthread_create(&thread, NULL, try_peer, info);
+    }
+
     pthread_mutex_unlock(&(s->peer_mutex));
     return true;
 }

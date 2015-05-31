@@ -36,19 +36,14 @@ ssize_t prompt_peer(int sock, struct sockaddr *addr) {
     return sendto(sock, buf, 17, 0, addr, sizeof(*addr));
 }
 
-ssize_t receive_handshake_response(PeerHandshake *res, int sock) {
-    char pstrlen;
-
-    ssize_t size = recv(sock, &pstrlen, 1, 0);
-    if (size < 1) {
-        return size;
-    }
+ssize_t receive_handshake_response(PeerHandshake *res,
+    int sock, uint8_t pstrlen) {
 
     int  bufflen = pstrlen + 8 + 20 + 20; 
     char buffer[bufflen];
 
-    size = recv(sock, buffer, bufflen, 0);
-    if (size < 1) {
+    ssize_t size = recv(sock, buffer, bufflen, 0);
+    if (size != bufflen) {
         return size;
     }
 
@@ -62,4 +57,15 @@ ssize_t receive_handshake_response(PeerHandshake *res, int sock) {
     memcpy(res->peer_id, buffer + pstrlen + 28, 20);
 
     return size;
+}
+
+ssize_t receive_handshake_response_full(PeerHandshake *res, int sock) {
+    uint8_t pstrlen;
+
+    ssize_t size = recv(sock, &pstrlen, 1, 0);
+    if (size < 1 || pstrlen != PROTOCOL_STR_LEN) {
+        return -1;
+    }
+
+    return receive_handshake_response(res, sock, pstrlen);
 }
