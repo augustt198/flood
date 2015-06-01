@@ -1,7 +1,5 @@
 #include "swarm.h"
 
-
-
 struct pr_info {
     Swarm *swarm;
     Peer  *peer;
@@ -9,22 +7,28 @@ struct pr_info {
 
 void *handle_peer(void *data) {
     struct pr_info *info = (struct pr_info*) data;
-    // Swarm *swarm = info->swarm;
-    Peer *peer   = info->peer;
+    Torrent *torrent     = info->swarm->torrent;
+    Peer *peer           = info->peer;
+    free(info);
 
     PeerHandshake handshake;
-    receive_handshake_response(&handshake, peer->sock, PROTOCOL_STR_LEN);
-    for (int i = 0; i < 20; i++)
-        printf("%hhu ", handshake.peer_id[i]);
-    printf("\n");
+    ssize_t size = receive_handshake_response(&handshake, peer->sock, PROTOCOL_STR_LEN);
+    if (size < 0) {
+        return NULL;
+    }
 
-    free(info);
+    if (memcmp(torrent->info_hash, handshake.info_hash, 20) == 0) {
+        printf(">> client has correct info hash\n");
+    }
+    
+    if ((handshake.reserved >> 44) & 1) {
+        printf(">> client supports extension protocol\n");
+    }
 
     return NULL;
 }
 
 void *try_peer(void *data) {
-    //
     struct pr_info *info = (struct pr_info*) data;
     Swarm *swarm = info->swarm;
     Peer *peer   = info->peer;
@@ -60,7 +64,7 @@ void *try_peer(void *data) {
         return NULL;
     }
     if (plen == 19) {
-        printf(">> valid peer\n");
+        printf(">> found alive peer\n");
         pthread_t thread;
         pthread_create(&thread, NULL, handle_peer, info);
     } else {
@@ -104,7 +108,6 @@ bool add_peer(Swarm *s, uint32_t ip, uint16_t port) {
     linked_list_insert(l, idx, &peer);
 
     if (idx % 5 == 0) {
-        printf(">> attemping peer request\n");
         struct pr_info* info = malloc(sizeof(struct pr_info)); //{s, peer};
         info->swarm = s;
         info->peer  = peer;

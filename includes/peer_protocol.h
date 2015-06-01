@@ -11,7 +11,7 @@
 typedef struct PeerHandshake {
     uint8_t pstrlen;
     char*   pstr;
-    int64_t reserved;
+    uint64_t reserved;
     char    info_hash[20];
     char    peer_id[20];
 } PeerHandshake;

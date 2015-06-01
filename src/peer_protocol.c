@@ -49,9 +49,9 @@ ssize_t receive_handshake_response(PeerHandshake *res,
 
     res->pstrlen = pstrlen;
     res->pstr    = malloc(pstrlen + 1);
-    memcpy(res->pstr, buffer + 1, pstrlen);
+    memcpy(res->pstr, buffer, pstrlen);
 
-    res->reserved = ntohll(*((uint64_t*) (buffer + 1 + pstrlen)));
+    res->reserved = ntohll(*((uint64_t*) (buffer + pstrlen)));
 
     memcpy(res->info_hash, buffer + pstrlen + 8, 20);
     memcpy(res->peer_id, buffer + pstrlen + 28, 20);
