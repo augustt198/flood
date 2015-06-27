@@ -1,3 +1,5 @@
+#include "bencoding.h"
+
 typedef struct Torrent {
     char *info_hash;
     char **trackers;

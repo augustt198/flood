@@ -1,5 +1,4 @@
 #include "torrent.h"
-#include "bencoding.h"
 #include "uri_util.h"
 
 int magnet2torrent(Torrent* dst, char *magnet) {

@@ -5,7 +5,6 @@
 #include <netdb.h>
 #include <arpa/inet.h>
 
-#include "linked_list.h"
 #include "uri_util.h"
 #include "torrent.h"
 #include "discover_ip.h"
@@ -38,6 +37,7 @@ typedef struct Peer {
     LinkedList *messages;
 
     int sock; // socket
+    struct sockaddr* addr;
 } Peer;
 
 void init_swarm(Swarm *swarm, Client *c, Torrent *t);

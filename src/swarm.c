@@ -18,11 +18,29 @@ void *handle_peer(void *data) {
     }
 
     if (memcmp(torrent->info_hash, handshake.info_hash, 20) == 0) {
-        printf(">> client has correct info hash\n");
+        printf("[%p] client has correct info hash\n", pthread_self());
     }
     
-    if ((handshake.reserved >> 44) & 1) {
-        printf(">> client supports extension protocol\n");
+    printf("[%p] handshake reserved: %llu\n", pthread_self(), handshake.reserved);
+    if ((handshake.reserved >> 20) & 1) {
+        printf("[%p] client supports extension protocol\n", pthread_self());
+    }
+
+    while (true) {
+        // length prefix
+        char buf[4];
+        if (recv(peer->sock, buf, 4, 0) <= 0) {
+            printf("[%p] reached EOF\n", pthread_self());
+            break;
+        }
+        // length prefix in little endian
+        int len = ntohl(*((uint32_t*) buf));
+        // buffer for rest of message
+        char *buf2 = malloc(len);
+        // how much was read from the socket
+        int len2 = recv(peer->sock, buf2, len, 0);
+
+        printf("[%p] MESSAGE L1=%d / L2=%d\n", pthread_self(), len, len2);
     }
 
     return NULL;
@@ -39,6 +57,7 @@ void *try_peer(void *data) {
     peeraddr.sin_port           = htons(peer->port);
     int sock = socket(AF_INET, SOCK_STREAM, 0);
     peer->sock = sock;
+    peer->addr = (struct sockaddr*) &peeraddr;
     int status = connect(
         sock, (struct sockaddr*) &peeraddr, sizeof(struct sockaddr_in)
     );
@@ -103,10 +122,11 @@ bool add_peer(Swarm *s, uint32_t ip, uint16_t port) {
     peer->alive = true;
 
     peer->messages = malloc(sizeof(LinkedList));
-    linked_list_new(peer->messages, 0);
+    linked_list_new(peer->messages, sizeof(int));
 
     linked_list_insert(l, idx, &peer);
 
+    // TODO better peer selection
     if (idx % 5 == 0) {
         struct pr_info* info = malloc(sizeof(struct pr_info)); //{s, peer};
         info->swarm = s;
@@ -183,7 +203,7 @@ void *tracker_routine(void *data) {
             linked_list_len(info->swarm->peers)
         );
 
-        sleep(60);
+        sleep(30);
     }
 
     return NULL;
@@ -199,7 +219,7 @@ void init_trackers(Swarm *swarm) {
         UriUriA tracker_uri;
         parse_uri(&tracker_uri, tracker);
         char *scheme = uri_scheme(&tracker_uri);
-        if (strcmp(scheme, "udp") != 0) break;
+        if (strcmp(scheme, "udp") != 0) continue;
 
         struct addrinfo *addr;
         char *host = uri_host(&tracker_uri);
