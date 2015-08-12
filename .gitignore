@@ -2,4 +2,4 @@ bin/
 *.o
 *.dSYM
 uriparser/
-*.swo
+*.swp
