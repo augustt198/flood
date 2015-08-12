@@ -1,5 +1,12 @@
 #include "udp_protocol.h"
+
+#include "net.h"
+
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
 
 #define CONNECT_REQUEST_SIZE  16
 #define CONNECT_RESPONSE_SIZE 16

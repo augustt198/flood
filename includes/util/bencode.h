@@ -1,8 +1,6 @@
-#include <stdbool.h>
-#include <ctype.h>
-#include <stdio.h>
+#pragma once
 
-#include "linked_list.h"
+#include "list.h"
 
 typedef enum BencodeType {
     BENCODE_STRING,
@@ -12,12 +10,12 @@ typedef enum BencodeType {
 } BencodeType;
 
 typedef char*       BencodeString;
-typedef int         BencodeInteger;
-typedef LinkedList  BencodeList;
+typedef long long   BencodeInteger;
+typedef List        BencodeList;
 
 // dicts are just a linked list
 // of BencodeDictEntry
-typedef LinkedList  BencodeDict;
+typedef List BencodeDict;
 
 typedef struct BencodeValue {
     BencodeType type;
@@ -29,23 +27,11 @@ typedef struct BencodeValue {
     };
 } BencodeValue;
 
+int dict_lookup(BencodeDict *dict, char *key, BencodeValue **dst);
+
 typedef struct BencodeDictEntry {
     char *key;
     BencodeValue *value;
 } BencodeDictEntry;
 
-
 int bencode_parse(char *string, int len, BencodeValue *dst);
-
-int b_parse_any(char *string, int len, int *pos, BencodeValue *dst);
-
-int b_parse_string(char *string, int len, int *pos,
-                   BencodeValue *dst, char first);
-
-int b_parse_int(char *string, int len, int *pos, BencodeValue *dst);
-
-int b_parse_list(char *string, int len, int *pos, BencodeValue *dst);
-
-int b_parse_dict(char *string, int len, int *pos, BencodeValue *dst);
-
-BencodeValue *dict_lookup(BencodeDict *dict, char *key);

@@ -1,6 +1,10 @@
-#include "linked_list.h"
+#include "list.h"
 
-void linked_list_new(LinkedList *list, int elem_size) {
+#include <stdlib.h>
+#include <stdbool.h>
+#include <string.h>
+
+void list_new(List *list, int elem_size) {
     list->head      = 0;
     list->tail      = 0;
     list->curr_node = 0;
@@ -9,26 +13,26 @@ void linked_list_new(LinkedList *list, int elem_size) {
     pthread_mutex_init(&(list->mutex), NULL);
 }
 
-int linked_list_len(LinkedList *list) {
+int list_len(List *list) {
     return list->len;
 }
 
-bool linked_list_empty(LinkedList *list) {
+bool list_empty(List *list) {
     return list->len == 0;
 }
 
-Node *create_node(LinkedList *list, void *data) {
-    Node *node = malloc(sizeof(Node));
+ListNode *create_node(List *list, void *data) {
+    ListNode *node = malloc(sizeof(ListNode));
     node->data = malloc(sizeof(list->elem_size));
     memcpy(node->data, data, list->elem_size);
 
     return node;
 }
 
-void linked_list_append(LinkedList *list, void *data) {
+void list_append(List *list, void *data) {
     pthread_mutex_lock(&(list->mutex));
 
-    Node *new_node = create_node(list, data);
+    ListNode *new_node = create_node(list, data);
 
     if (list->len == 0) {
         list->head = new_node;
@@ -47,10 +51,10 @@ void linked_list_append(LinkedList *list, void *data) {
     pthread_mutex_unlock(&(list->mutex));
 }
 
-void linked_list_prepend(LinkedList *list, void *data) {
+void list_prepend(List *list, void *data) {
     pthread_mutex_lock(&(list->mutex));
 
-    Node *new_node = create_node(list, data);
+    ListNode *new_node = create_node(list, data);
 
     if (list->len == 0) {
         list->head = new_node;
@@ -72,22 +76,22 @@ void linked_list_prepend(LinkedList *list, void *data) {
 }
 
 
-bool linked_list_insert(LinkedList *list, int idx, void *data) {
+bool list_insert(List *list, int idx, void *data) {
     if (idx < 0 || idx > list->len)
         return false;
 
     if (idx == list->len) {
-        linked_list_append(list, data);
+        list_append(list, data);
         return true;
     } else if (idx == 0) {
-        linked_list_prepend(list, data);
+        list_prepend(list, data);
         return true;
     }
     pthread_mutex_lock(&(list->mutex));
 
 
-    Node *new_node = create_node(list, data);
-    Node *node;
+    ListNode *new_node = create_node(list, data);
+    ListNode *node;
     int mid = list->len / 2;
     if (idx <= mid) {
         node = list->head;
@@ -112,13 +116,13 @@ bool linked_list_insert(LinkedList *list, int idx, void *data) {
     return true;
 }
 
-bool linked_list_truncate(LinkedList *list) {
+bool list_truncate(List *list) {
     pthread_mutex_lock(&(list->mutex));
     if (list->len < 1) {
         return false;
     }
 
-    Node *del_node = list->tail;
+    ListNode *del_node = list->tail;
     if (list->len == 1) {
         list->head = 0;
         list->tail = 0;
@@ -134,14 +138,14 @@ bool linked_list_truncate(LinkedList *list) {
     return true;
 }
 
-bool linked_list_get(LinkedList *list, int idx, void *data) {
+bool list_get(List *list, int idx, void *data) {
     if (idx < 0 || idx >= list->len) {
         return false;
     }
     pthread_mutex_lock(&(list->mutex));
 
     int mid = list->len / 2;
-    Node *node;
+    ListNode *node;
 
     if (idx <= mid) { // iterate forward
         node = list->head;
@@ -160,8 +164,8 @@ bool linked_list_get(LinkedList *list, int idx, void *data) {
     return true;
 }
 
-void linked_list_each(LinkedList *list, int (*fn)(int, void *)) {
-    Node *node = list->head;
+void list_each(List *list, int (*fn)(int, void *)) {
+    ListNode *node = list->head;
     for (int i = 0; node; i++) {
         if (fn(i, node->data) != 0)
             break;
@@ -170,15 +174,15 @@ void linked_list_each(LinkedList *list, int (*fn)(int, void *)) {
     }
 }
 
-void iter_start(LinkedList *list) {
+void list_iter_start(List *list) {
     list->curr_node = list->head;
 }
 
-bool iter_has_next(LinkedList *list) {
+bool list_iter_has_next(List *list) {
     return list->curr_node != 0;
 }
 
-bool iter_next(LinkedList *list, void *data) {
+bool list_iter_next(List *list, void *data) {
     if (list->curr_node == 0) {
         return false;
     }

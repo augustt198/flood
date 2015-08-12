@@ -1,10 +1,5 @@
-#include <stdlib.h>
-#include <string.h>
+#include <stdint.h>
 #include <sys/socket.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
-
-#include "net.h"
 
 #define MAGIC_CONNECTION_ID 0x41727101980
 #define CONNECTION_ACTION   0

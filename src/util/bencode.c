@@ -1,7 +1,19 @@
-#include "bencoding.h"
+#include "bencode.h"
+
+#include <stdlib.h>
+#include <stdbool.h>
+#include <stdio.h>
+#include <string.h>
+#include <ctype.h>
 
 #define EOF_CHECK(_pos, _len)\
     if (*_pos >= _len) return -1;
+
+int b_parse_any    (char *string, int len, int *pos, BencodeValue *dst);
+int b_parse_string (char *string, int len, int *pos, BencodeValue *dst, char first);
+int b_parse_int    (char *string, int len, int *pos, BencodeValue *dst);
+int b_parse_list   (char *string, int len, int *pos, BencodeValue *dst);
+int b_parse_dict   (char *string, int len, int *pos, BencodeValue *dst);
 
 int bencode_parse(char *string, int len, BencodeValue *dst) {
     int pos = 0;
@@ -92,15 +104,15 @@ int b_parse_int(char *string, int len,
 
 int b_parse_list(char *string, int len, int *pos, BencodeValue *dst) {
     EOF_CHECK(pos, len);
-    LinkedList *list = malloc(sizeof(LinkedList));
-    linked_list_new(list, sizeof(BencodeValue*));
+    List *list = malloc(sizeof(List));
+    list_new(list, sizeof(BencodeValue*));
 
     while (string[*pos] != 'e') {
         BencodeValue *elem = malloc(sizeof(BencodeValue));
         int code = b_parse_any(string, len, pos, elem);
         if (code != 0)
             return code;
-        linked_list_append(list, &elem);
+        list_append(list, &elem);
         EOF_CHECK(pos, len);
     }
 
@@ -114,8 +126,8 @@ int b_parse_list(char *string, int len, int *pos, BencodeValue *dst) {
 
 int b_parse_dict(char *string, int len, int *pos, BencodeValue *dst) {
     EOF_CHECK(pos, len);
-    LinkedList *dict = malloc(sizeof(LinkedList));
-    linked_list_new(dict, sizeof(BencodeDictEntry*));
+    List *dict = malloc(sizeof(List));
+    list_new(dict, sizeof(BencodeDictEntry*));
 
     while (string[*pos] != 'e') {
         BencodeDictEntry *entry = malloc(sizeof(BencodeDictEntry));
@@ -135,7 +147,7 @@ int b_parse_dict(char *string, int len, int *pos, BencodeValue *dst) {
             return -2;
         entry->key   = key.string;
         entry->value = val;
-        linked_list_append(dict, &entry);
+        list_append(dict, &entry);
 
     }
     *pos += 1;
@@ -145,14 +157,16 @@ int b_parse_dict(char *string, int len, int *pos, BencodeValue *dst) {
     return 0;
 }
 
-BencodeValue *dict_lookup(BencodeDict *dict, char *key) {
-    iter_start(dict);
-    while (iter_has_next(dict)) {
+int dict_lookup(BencodeDict *dict, char *key, BencodeValue **dst) {
+    list_iter_start(dict);
+    while (list_iter_has_next(dict)) {
         BencodeDictEntry *entry;
-        iter_next(dict, &entry);
-        if (strcmp(entry->key, key) == 0)
-            return entry->value;
+        list_iter_next(dict, &entry);
+        if (strcmp(entry->key, key) == 0) {
+            *dst = entry->value; 
+            return 0;
+        }
     }
 
-    return 0;
+    return -1;
 }
