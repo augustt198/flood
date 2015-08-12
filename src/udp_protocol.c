@@ -21,11 +21,7 @@ ssize_t send_connect_request(ConnectRequest *req,
     *((uint32_t*) (buffer + 8))    = htonl(req->action);
     *((uint32_t*) (buffer + 12))   = htonl(req->transaction_id);
 
-    if (addr == NULL) {
-        return send(sock, buffer, CONNECT_REQUEST_SIZE, 0);
-    } else {
-        return sendto(sock, buffer, CONNECT_REQUEST_SIZE, 0, addr, sizeof(*addr));
-    }
+    return sendto(sock, buffer, CONNECT_REQUEST_SIZE, 0, addr, sizeof(*addr));
 }
 
 ssize_t receive_connect_response(ConnectResponse* res, int sock) {
@@ -62,11 +58,7 @@ ssize_t send_announce_request(AnnounceRequest *req,
     *((uint16_t*) (buffer + 96)) = htons (req->port);
     *((uint16_t*) (buffer + 98)) = htons (req->extensions);
 
-    if (addr == NULL) {
-        return send(sock, buffer, ANNOUNCE_REQUEST_SIZE, 0);
-    } else {
-        return sendto(sock, buffer, ANNOUNCE_REQUEST_SIZE, 0, addr, sizeof(*addr));
-    }
+    return sendto(sock, buffer, ANNOUNCE_REQUEST_SIZE, 0, addr, sizeof(*addr));
 }
 
 ssize_t receive_announce_response(AnnounceResponse *res, int sock) {
