@@ -9,18 +9,18 @@
 #define EOF_CHECK(_pos, _len)\
     if (*_pos >= _len) return -1;
 
-int b_parse_any    (char *string, int len, int *pos, BencodeValue *dst);
-int b_parse_string (char *string, int len, int *pos, BencodeValue *dst, char first);
-int b_parse_int    (char *string, int len, int *pos, BencodeValue *dst);
-int b_parse_list   (char *string, int len, int *pos, BencodeValue *dst);
-int b_parse_dict   (char *string, int len, int *pos, BencodeValue *dst);
+int b_parse_any    (char *string, int len, int *pos, bencode_value *dst);
+int b_parse_string (char *string, int len, int *pos, bencode_value *dst, char first);
+int b_parse_int    (char *string, int len, int *pos, bencode_value *dst);
+int b_parse_list   (char *string, int len, int *pos, bencode_value *dst);
+int b_parse_dict   (char *string, int len, int *pos, bencode_value *dst);
 
-int bencode_parse(char *string, int len, BencodeValue *dst) {
+int bencode_parse(char *string, int len, bencode_value *dst) {
     int pos = 0;
     return b_parse_any(string, len, &pos, dst);
 }
 
-int b_parse_any(char *string, int len, int *pos, BencodeValue *dst) {
+int b_parse_any(char *string, int len, int *pos, bencode_value *dst) {
     EOF_CHECK(pos, len);
     char prefix = string[*pos];
     *pos += 1;
@@ -38,13 +38,13 @@ int b_parse_any(char *string, int len, int *pos, BencodeValue *dst) {
                 return -2;
             }
     }
-    
+
     // ok
     return 0;
 }
 
 int b_parse_string(char *string, int len, int *pos,
-                   BencodeValue *dst, char first) {
+                   bencode_value *dst, char first) {
 
     int n = first - '0';
     while (isdigit(string[*pos])) {
@@ -72,7 +72,7 @@ int b_parse_string(char *string, int len, int *pos,
 }
 
 int b_parse_int(char *string, int len,
-                int *pos, BencodeValue *dst) {
+                int *pos, bencode_value *dst) {
 
     EOF_CHECK(pos, len);
 
@@ -102,13 +102,13 @@ int b_parse_int(char *string, int len,
     return 0;
 }
 
-int b_parse_list(char *string, int len, int *pos, BencodeValue *dst) {
+int b_parse_list(char *string, int len, int *pos, bencode_value *dst) {
     EOF_CHECK(pos, len);
-    List *list = malloc(sizeof(List));
-    list_new(list, sizeof(BencodeValue*));
+    list_t *list = malloc(sizeof(list_t));
+    list_new(list, sizeof(bencode_value*));
 
     while (string[*pos] != 'e') {
-        BencodeValue *elem = malloc(sizeof(BencodeValue));
+        bencode_value *elem = malloc(sizeof(bencode_value));
         int code = b_parse_any(string, len, pos, elem);
         if (code != 0)
             return code;
@@ -124,15 +124,15 @@ int b_parse_list(char *string, int len, int *pos, BencodeValue *dst) {
     return 0;
 }
 
-int b_parse_dict(char *string, int len, int *pos, BencodeValue *dst) {
+int b_parse_dict(char *string, int len, int *pos, bencode_value *dst) {
     EOF_CHECK(pos, len);
-    List *dict = malloc(sizeof(List));
-    list_new(dict, sizeof(BencodeDictEntry*));
+    list_t *dict = malloc(sizeof(list_t));
+    list_new(dict, sizeof(bencode_dict_entry*));
 
     while (string[*pos] != 'e') {
-        BencodeDictEntry *entry = malloc(sizeof(BencodeDictEntry));
-        BencodeValue key;
-        BencodeValue *val = malloc(sizeof(BencodeValue));
+        bencode_dict_entry *entry = malloc(sizeof(bencode_dict_entry));
+        bencode_value key;
+        bencode_value *val = malloc(sizeof(bencode_value));
 
         int code = b_parse_any(string, len, pos, &key);
         if (code != 0)
@@ -157,13 +157,13 @@ int b_parse_dict(char *string, int len, int *pos, BencodeValue *dst) {
     return 0;
 }
 
-int dict_lookup(BencodeDict *dict, char *key, BencodeValue **dst) {
+int dict_lookup(bencode_dict *dict, char *key, bencode_value **dst) {
     list_iter_start(dict);
     while (list_iter_has_next(dict)) {
-        BencodeDictEntry *entry;
+        bencode_dict_entry *entry;
         list_iter_next(dict, &entry);
         if (strcmp(entry->key, key) == 0) {
-            *dst = entry->value; 
+            *dst = entry->value;
             return 0;
         }
     }

@@ -2,36 +2,36 @@
 
 #include "list.h"
 
-typedef enum BencodeType {
+typedef enum bencode_type {
     BENCODE_STRING,
     BENCODE_INTEGER,
     BENCODE_LIST,
     BENCODE_DICT
-} BencodeType;
+} bencode_type;
 
-typedef char*       BencodeString;
-typedef long long   BencodeInteger;
-typedef List        BencodeList;
+typedef char*       bencode_string;
+typedef long long   bencode_integer;
+typedef list_t      bencode_list;
 
 // dicts are just a linked list
-// of BencodeDictEntry
-typedef List BencodeDict;
+// of bencode_dict_entry
+typedef list_t bencode_dict;
 
-typedef struct BencodeValue {
-    BencodeType type;
+typedef struct bencode_value {
+    bencode_type type;
     union {
-      struct { BencodeString    string;  };
-      struct { BencodeInteger   integer; };
-      struct { BencodeList      *list;   };
-      struct { BencodeDict      *dict;   };
+      struct { bencode_string    string;  };
+      struct { bencode_integer   integer; };
+      struct { bencode_list      *list;   };
+      struct { bencode_dict      *dict;   };
     };
-} BencodeValue;
+} bencode_value;
 
-int dict_lookup(BencodeDict *dict, char *key, BencodeValue **dst);
+int dict_lookup(bencode_dict *dict, char *key, bencode_value **dst);
 
-typedef struct BencodeDictEntry {
+typedef struct bencode_dict_entry {
     char *key;
-    BencodeValue *value;
-} BencodeDictEntry;
+    bencode_value *value;
+} bencode_dict_entry;
 
-int bencode_parse(char *string, int len, BencodeValue *dst);
+int bencode_parse(char *string, int len, bencode_value *dst);

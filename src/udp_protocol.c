@@ -13,7 +13,7 @@
 #define ANNOUNCE_REQUEST_SIZE      100
 #define ANNOUNCE_RESPONSE_MIN_SIZE 20
 
-ssize_t send_connect_request(ConnectRequest *req,
+ssize_t send_connect_request(udpt_connect_req *req,
     int sock, struct sockaddr *addr) {
 
     char buffer[CONNECT_REQUEST_SIZE];
@@ -24,7 +24,7 @@ ssize_t send_connect_request(ConnectRequest *req,
     return sendto(sock, buffer, CONNECT_REQUEST_SIZE, 0, addr, sizeof(*addr));
 }
 
-ssize_t receive_connect_response(ConnectResponse* res, int sock) {
+ssize_t receive_connect_response(udpt_connect_resp* res, int sock) {
     char buffer[CONNECT_RESPONSE_SIZE];
     ssize_t size = recvfrom(sock, buffer, CONNECT_RESPONSE_SIZE, 0, NULL, NULL);
     if (size < CONNECT_RESPONSE_SIZE)
@@ -37,7 +37,7 @@ ssize_t receive_connect_response(ConnectResponse* res, int sock) {
     return size;
 }
 
-ssize_t send_announce_request(AnnounceRequest *req,
+ssize_t send_announce_request(udpt_announce_req *req,
     int sock, struct sockaddr *addr) {
 
     char buffer[ANNOUNCE_REQUEST_SIZE];
@@ -61,7 +61,7 @@ ssize_t send_announce_request(AnnounceRequest *req,
     return sendto(sock, buffer, ANNOUNCE_REQUEST_SIZE, 0, addr, sizeof(*addr));
 }
 
-ssize_t receive_announce_response(AnnounceResponse *res, int sock) {
+ssize_t receive_announce_response(udpt_announce_resp *res, int sock) {
     char buffer[1024];
     ssize_t size = recvfrom(sock, buffer, 1024, 0, NULL, NULL);
     if (size < ANNOUNCE_RESPONSE_MIN_SIZE)
@@ -75,9 +75,9 @@ ssize_t receive_announce_response(AnnounceResponse *res, int sock) {
 
     res->peer_count = (size - ANNOUNCE_RESPONSE_MIN_SIZE) / 6;
 
-    PeerInfo *peer = NULL;
+    udpt_peer *peer = NULL;
     for (int i = 20; i < size; i += 6) {
-        PeerInfo *next_peer = malloc(sizeof(PeerInfo));
+        udpt_peer *next_peer = malloc(sizeof(udpt_peer));
         if (peer == NULL) {
             res->peers = next_peer;
         } else {

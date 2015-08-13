@@ -4,7 +4,7 @@
 #include <stdbool.h>
 #include <string.h>
 
-void list_new(List *list, int elem_size) {
+void list_new(list_t *list, int elem_size) {
     list->head      = 0;
     list->tail      = 0;
     list->curr_node = 0;
@@ -13,26 +13,26 @@ void list_new(List *list, int elem_size) {
     pthread_mutex_init(&(list->mutex), NULL);
 }
 
-int list_len(List *list) {
+int list_len(list_t *list) {
     return list->len;
 }
 
-bool list_empty(List *list) {
+bool list_empty(list_t *list) {
     return list->len == 0;
 }
 
-ListNode *create_node(List *list, void *data) {
-    ListNode *node = malloc(sizeof(ListNode));
+list_node *create_node(list_t *list, void *data) {
+    list_node *node = malloc(sizeof(list_node));
     node->data = malloc(sizeof(list->elem_size));
     memcpy(node->data, data, list->elem_size);
 
     return node;
 }
 
-void list_append(List *list, void *data) {
+void list_append(list_t *list, void *data) {
     pthread_mutex_lock(&(list->mutex));
 
-    ListNode *new_node = create_node(list, data);
+    list_node *new_node = create_node(list, data);
 
     if (list->len == 0) {
         list->head = new_node;
@@ -51,10 +51,10 @@ void list_append(List *list, void *data) {
     pthread_mutex_unlock(&(list->mutex));
 }
 
-void list_prepend(List *list, void *data) {
+void list_prepend(list_t *list, void *data) {
     pthread_mutex_lock(&(list->mutex));
 
-    ListNode *new_node = create_node(list, data);
+    list_node *new_node = create_node(list, data);
 
     if (list->len == 0) {
         list->head = new_node;
@@ -65,7 +65,7 @@ void list_prepend(List *list, void *data) {
         list->head->prev = new_node;
         new_node->next = list->head;
         new_node->prev = NULL;
-        
+
         list->head = new_node;
     }
 
@@ -76,7 +76,7 @@ void list_prepend(List *list, void *data) {
 }
 
 
-bool list_insert(List *list, int idx, void *data) {
+bool list_insert(list_t *list, int idx, void *data) {
     if (idx < 0 || idx > list->len)
         return false;
 
@@ -90,8 +90,8 @@ bool list_insert(List *list, int idx, void *data) {
     pthread_mutex_lock(&(list->mutex));
 
 
-    ListNode *new_node = create_node(list, data);
-    ListNode *node;
+    list_node *new_node = create_node(list, data);
+    list_node *node;
     int mid = list->len / 2;
     if (idx <= mid) {
         node = list->head;
@@ -116,13 +116,13 @@ bool list_insert(List *list, int idx, void *data) {
     return true;
 }
 
-bool list_truncate(List *list) {
+bool list_truncate(list_t *list) {
     pthread_mutex_lock(&(list->mutex));
     if (list->len < 1) {
         return false;
     }
 
-    ListNode *del_node = list->tail;
+    list_node *del_node = list->tail;
     if (list->len == 1) {
         list->head = 0;
         list->tail = 0;
@@ -138,14 +138,14 @@ bool list_truncate(List *list) {
     return true;
 }
 
-bool list_get(List *list, int idx, void *data) {
+bool list_get(list_t *list, int idx, void *data) {
     if (idx < 0 || idx >= list->len) {
         return false;
     }
     pthread_mutex_lock(&(list->mutex));
 
     int mid = list->len / 2;
-    ListNode *node;
+    list_node *node;
 
     if (idx <= mid) { // iterate forward
         node = list->head;
@@ -164,8 +164,8 @@ bool list_get(List *list, int idx, void *data) {
     return true;
 }
 
-void list_each(List *list, int (*fn)(int, void *)) {
-    ListNode *node = list->head;
+void list_each(list_t *list, int (*fn)(int, void *)) {
+    list_node *node = list->head;
     for (int i = 0; node; i++) {
         if (fn(i, node->data) != 0)
             break;
@@ -174,15 +174,15 @@ void list_each(List *list, int (*fn)(int, void *)) {
     }
 }
 
-void list_iter_start(List *list) {
+void list_iter_start(list_t *list) {
     list->curr_node = list->head;
 }
 
-bool list_iter_has_next(List *list) {
+bool list_iter_has_next(list_t *list) {
     return list->curr_node != 0;
 }
 
-bool list_iter_next(List *list, void *data) {
+bool list_iter_next(list_t *list, void *data) {
     if (list->curr_node == 0) {
         return false;
     }

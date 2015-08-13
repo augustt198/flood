@@ -3,59 +3,59 @@
 #include <stdbool.h>
 #include <pthread.h>
 
-typedef struct ListNode {
+typedef struct list_node {
     void *data;
-    struct ListNode *next;
-    struct ListNode *prev;
-} ListNode;
+    struct list_node *next;
+    struct list_node *prev;
+} list_node;
 
-typedef struct List {
-    ListNode *head;
-    ListNode *tail;
-    ListNode *curr_node;
+typedef struct list_t {
+    list_node *head;
+    list_node *tail;
+    list_node *curr_node;
     int elem_size;
     int len;
     pthread_mutex_t mutex;
-} List;
+} list_t;
 
 
 // Initializes the linked list at `list`, with
 // the size of each element set to `elem_size`.
-void list_new(List *list, int elem_size);
+void list_new(list_t *list, int elem_size);
 
 // Gets the length of the linked list.
-int list_len(List *list);
+int list_len(list_t *list);
 
 // Returns whether or not the linked list
 // is empty (lenght == 0)
-bool list_empty(List *list);
+bool list_empty(list_t *list);
 
 // Appends `data` to the end of the list.
-void list_append(List *list, void *data);
+void list_append(list_t *list, void *data);
 
 // Prepends `data` to the start of the list.
-void list_prepend(List *list, void *data);
+void list_prepend(list_t *list, void *data);
 
 // Inserts `data` at index `idx`.
-bool list_insert(List *list, int idx, void *data);
+bool list_insert(list_t *list, int idx, void *data);
 
 // Removes the last element from list.
 //
 // Returns `true` if any elements were
 // removed, `false` if not.
-bool list_truncate(List *list);
+bool list_truncate(list_t *list);
 
-void list_each(List *list, int (*fn)(int, void *));
+void list_each(list_t *list, int (*fn)(int, void *));
 
 // Fetches the element at `idx` from `list`
 // and places it into `data`.
 //
 // Returns `true` if `idx` was a valid index
 // into `list`, `false` if not.
-bool list_get(List *list, int idx, void *data);
+bool list_get(list_t *list, int idx, void *data);
 
-void list_iter_start(List *list);
+void list_iter_start(list_t *list);
 
-bool list_iter_has_next(List *list);
+bool list_iter_has_next(list_t *list);
 
-bool list_iter_next(List *list, void *data);
+bool list_iter_next(list_t *list, void *data);
