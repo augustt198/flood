@@ -1,7 +1,8 @@
 #include <stdio.h>
+#include <string.h>
 #include <assert.h>
 
-#include "bencoding.h"
+#include "bencode.h"
 
 int main() {
     /* test integers */
@@ -19,7 +20,7 @@ int main() {
     status = bencode_parse(str, strlen(str), &val);
     assert(status   == 0);
     assert(val.type == BENCODE_STRING);
-    assert(strcmp(val.string, "hello") == 0);
+    assert(strcmp(val.string.ptr, "hello") == 0);
 
     /* test lists */
     str = "l3:foo3:bari123ee";
@@ -31,15 +32,15 @@ int main() {
 
     bencode_value *list_elem;
 
-    linked_list_get(val.list, 0, &list_elem);
+    list_get(val.list, 0, &list_elem);
     assert(list_elem->type == BENCODE_STRING);
-    assert(strcmp(list_elem->string, "foo") == 0);
+    assert(strcmp(list_elem->string.ptr, "foo") == 0);
 
-    linked_list_get(val.list, 1, &list_elem);
+    list_get(val.list, 1, &list_elem);
     assert(list_elem->type == BENCODE_STRING);
-    assert(strcmp(list_elem->string, "bar") == 0);
+    assert(strcmp(list_elem->string.ptr, "bar") == 0);
 
-    linked_list_get(val.list, 2, &list_elem);
+    list_get(val.list, 2, &list_elem);
     assert(list_elem->type      == BENCODE_INTEGER);
     assert(list_elem->integer   == 123);
 
@@ -52,7 +53,7 @@ int main() {
     assert(val.dict->len == 1);
 
     bencode_dict_entry *entry;
-    linked_list_get(val.dict, 0, &entry);
+    list_get(val.dict, 0, &entry);
 
     assert(strcmp(entry->key, "foo") == 0);
     assert(entry->value->type == BENCODE_INTEGER);

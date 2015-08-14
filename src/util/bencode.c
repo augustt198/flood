@@ -15,6 +15,14 @@ int b_parse_int    (char *string, int len, int *pos, bencode_value *dst);
 int b_parse_list   (char *string, int len, int *pos, bencode_value *dst);
 int b_parse_dict   (char *string, int len, int *pos, bencode_value *dst);
 
+
+char *itoa(int n) {
+    char *buf = malloc(19);
+    memset(buf, 0, 19);
+    sprintf(buf, "%d", n);
+    return buf;
+}
+
 int bencode_parse(char *string, int len, bencode_value *dst) {
     int pos = 0;
     return b_parse_any(string, len, &pos, dst);
@@ -65,8 +73,10 @@ int b_parse_string(char *string, int len, int *pos,
         *pos += 1;
     }
 
+    bencode_string bstr = {parsed_str, n};
+
     dst->type   = BENCODE_STRING;
-    dst->string = parsed_str;
+    dst->string = bstr;
 
     return 0;
 }
@@ -145,7 +155,7 @@ int b_parse_dict(char *string, int len, int *pos, bencode_value *dst) {
 
         if (key.type != BENCODE_STRING)
             return -2;
-        entry->key   = key.string;
+        entry->key   = key.string.ptr;
         entry->value = val;
         list_append(dict, &entry);
 
@@ -170,3 +180,135 @@ int dict_lookup(bencode_dict *dict, char *key, bencode_value **dst) {
 
     return -1;
 }
+
+// number of digits in the decimal representation
+// of `n` (including negative sign)
+int declen(int n) {
+    if (n == 0)
+        return 1;
+    int c = 0;
+    if (n < 0) {
+        c++;
+        n = -n;
+    }
+    for (; n > 0; n /= 10)
+        c++;
+
+    return c;
+}
+
+// calculates length of a bencode value's
+// string representation
+int b_to_string_len(bencode_value *val) {
+    bencode_type type = val->type;
+    int len = 0;
+    if (type == BENCODE_STRING) {
+        int bstrlen = val->string.len;
+        // <string len>:<string>
+        len = declen(bstrlen) + 1 + bstrlen;
+    } else if (type == BENCODE_INTEGER) {
+        // i<number>e
+        len = 1 + declen(val->integer) + 1;
+    } else if (type == BENCODE_LIST) {
+        int sum = 0;
+        list_node *node = val->list->head;
+        while (node != NULL) {
+            bencode_value *elem = *((bencode_value**) node->data);
+            int elem_len = b_to_string_len(elem);
+            sum += elem_len;
+
+            node = node->next;
+        }
+        // l<items>e
+        len = 1 + sum + 1;
+    } else if (type == BENCODE_DICT) {
+        int sum = 0;
+        list_node *node = val->dict->head;
+        while (node != NULL) {
+            bencode_dict_entry *entry = *((bencode_dict_entry**) node->data);
+            int key_len = strlen(entry->key);
+            int val_len = b_to_string_len(entry->value);
+            // <key len>:<key><value>
+            sum += declen(key_len) + 1 + key_len + val_len;
+
+            node = node->next;
+        }
+        // d<pairs>e 
+        len = 1 + sum + 1;
+    }
+
+    return len;
+}
+
+void write_num(char *dst, int *i, int num) {
+    char *str  = itoa(num);
+    int numlen = strlen(str);
+    memcpy(dst + *i, str, numlen);
+    *i += numlen;
+}
+
+void b_to_string(char *dst, int *i, bencode_value *val) {
+    bencode_type type = val->type;
+    if (type == BENCODE_STRING) {
+        char *prefix = itoa(val->string.len);
+        int prefix_len = strlen(prefix);
+        memcpy(dst + *i, prefix, prefix_len);
+        *i += prefix_len;
+        dst[*i] = ':';
+        *i += 1;
+        memcpy(dst + *i, val->string.ptr, val->string.len);
+        *i += val->string.len;
+    } else if (type == BENCODE_INTEGER) {
+        dst[*i] = 'i';
+        *i += 1;
+        char *num = itoa(val->integer);
+        memcpy(dst + *i, num, strlen(num));
+        *i += strlen(num);
+        dst[*i] = 'e';
+        *i += 1;
+    } else if (type == BENCODE_LIST) {
+        dst[*i] = 'l';
+        *i += 1;
+        list_node *node = val->list->head;
+        while (node != NULL) {
+            bencode_value *elem = *((bencode_value**) node->data);
+            b_to_string(dst, i, elem);
+            
+            node = node->next;
+        }
+        dst[*i] = 'e';
+        *i += 1;
+    } else if (type == BENCODE_DICT) {
+        dst[*i] = 'd';
+        *i += 1;
+        list_node *node = val->dict->head;
+        while (node != NULL) {
+            bencode_dict_entry *entry = *((bencode_dict_entry**) node->data);
+            char *key   = entry->key;
+            int key_len = strlen(key);
+            write_num(dst, i, key_len);
+            dst[*i] = ':';
+            *i += 1;
+            memcpy(dst + *i, key, key_len);
+            *i += key_len;
+
+            bencode_value *pair_val = entry->value;
+            b_to_string(dst, i, pair_val);
+
+            node = node->next;
+        }
+        dst[*i] = 'e';
+        *i += 1;
+    }
+}
+
+int bencode_to_string(char **strp, bencode_value *val) {
+    int len   = b_to_string_len(val);
+    char *str = malloc(len + 1);
+    int i     = 0;
+    b_to_string(str, &i, val);
+
+    *strp = str;
+    return len;
+}
+

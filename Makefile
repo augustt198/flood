@@ -12,8 +12,8 @@ all: $(SOURCES) $(MAIN_FILE)
 	@mkdir -p bin
 	$(CC) $(CFLAGS) $(INCLUDES) $(MAIN_FILE) $(SOURCES) -o bin/flood
 
-test: $(SOURCES) test/bencode_test.c
-	@mkdir -p test/bin
+tests: $(SOURCES) test/bencode_test.c
+	@mkdir -p bin
 	$(CC) $(CFLAGS) $(INCLUDES) test/bencode_test.c $(SOURCES) -o bin/bencode_test
 
 clean:

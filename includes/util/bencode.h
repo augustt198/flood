@@ -9,9 +9,13 @@ typedef enum bencode_type {
     BENCODE_DICT
 } bencode_type;
 
-typedef char*       bencode_string;
-typedef long long   bencode_integer;
-typedef list_t      bencode_list;
+typedef struct bencode_string {
+    char *ptr;
+    int  len;
+} bencode_string;
+
+typedef long long bencode_integer;
+typedef list_t    bencode_list;
 
 // dicts are just a linked list
 // of bencode_dict_entry
@@ -35,3 +39,4 @@ typedef struct bencode_dict_entry {
 } bencode_dict_entry;
 
 int bencode_parse(char *string, int len, bencode_value *dst);
+int bencode_to_string(char **strp, bencode_value *val);
