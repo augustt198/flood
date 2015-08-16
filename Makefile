@@ -15,6 +15,7 @@ all: $(SOURCES) $(MAIN_FILE)
 tests: $(SOURCES) test/bencode_test.c
 	@mkdir -p bin
 	$(CC) $(CFLAGS) $(INCLUDES) test/bencode_test.c $(SOURCES) -o bin/bencode_test
+	$(CC) $(CFLAGS) $(INCLUDES) test/udp_protocol_test.c $(SOURCES) -o bin/udp_protocol_test
 
 clean:
 	@rm bin/flood

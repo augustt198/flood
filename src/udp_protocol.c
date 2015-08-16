@@ -62,8 +62,8 @@ ssize_t send_announce_request(udpt_announce_req *req,
 }
 
 ssize_t receive_announce_response(udpt_announce_resp *res, int sock) {
-    char buffer[1024];
-    ssize_t size = recvfrom(sock, buffer, 1024, 0, NULL, NULL);
+    char buffer[1022];
+    ssize_t size = recvfrom(sock, buffer, 1022, 0, NULL, NULL);
     if (size < ANNOUNCE_RESPONSE_MIN_SIZE)
         return size;
 
@@ -78,6 +78,7 @@ ssize_t receive_announce_response(udpt_announce_resp *res, int sock) {
     udpt_peer *peer = NULL;
     for (int i = 20; i < size; i += 6) {
         udpt_peer *next_peer = malloc(sizeof(udpt_peer));
+        memset(next_peer, 0, sizeof(udpt_peer));
         if (peer == NULL) {
             res->peers = next_peer;
         } else {
