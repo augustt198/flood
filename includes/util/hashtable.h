@@ -3,6 +3,8 @@
 #include <string.h>
 #include <stdint.h>
 
+#include <pthread.h>
+
 // A function for hashing a key.
 typedef unsigned int (*hashtable_hash_func)(void *key);
 // A function for comparing two keys
@@ -29,6 +31,8 @@ typedef struct {
 
     hashtable_hash_func hash_func;
     hashtable_cmp_func  cmp_func;
+
+    pthread_mutex_t mutex;
 } hashtable_t;
 
 typedef struct {

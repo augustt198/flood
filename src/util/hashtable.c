@@ -61,6 +61,8 @@ void hashtable_init(hashtable_t *ht, hashtable_hash_func hf, hashtable_cmp_func 
 
     ht->hash_func = hf;
     ht->cmp_func  = cf;
+
+    pthread_mutex_init(&(ht->mutex), NULL);
 }
 
 void hashtable_free(hashtable_t *ht) {
@@ -84,6 +86,7 @@ int hash_function(int hash, int tablesize) {
 }
 
 int hashtable_get(hashtable_t *ht, void *key, void **dst) {
+    pthread_mutex_lock(&(ht->mutex));
     int hash  = ht->hash_func(key);
     int index = hash_function(hash, ht->cap);
 
@@ -91,11 +94,13 @@ int hashtable_get(hashtable_t *ht, void *key, void **dst) {
     while (e != NULL) {
         if (ht->cmp_func(key, e->key) == 0) {
             *dst = e->val;
+            pthread_mutex_unlock(&(ht->mutex));
             return 1;
         } else {
             e = e->next;
         }
     }
+    pthread_mutex_unlock(&(ht->mutex));
     return 0;
 }
 
@@ -146,6 +151,7 @@ hashtable_entry *new_entry(void *key, void *val) {
 }
 
 int hashtable_put(hashtable_t *ht, void *key, void *val) {
+    pthread_mutex_lock(&(ht->mutex));
     if (ht->size >= ht->cap * LOAD_FACTOR) {
         grow_table(ht);        
     }
@@ -157,6 +163,7 @@ int hashtable_put(hashtable_t *ht, void *key, void *val) {
 
     if (ht->table[index] == NULL) {
         ht->table[index] = new_entry(key, val);
+        pthread_mutex_unlock(&(ht->mutex));
         return 0;
     } else {
         hashtable_entry *e    = ht->table[index];
@@ -165,6 +172,7 @@ int hashtable_put(hashtable_t *ht, void *key, void *val) {
         while (e != NULL) {
             if (ht->cmp_func(key, e->key) == 0) {
                 e->val = val;
+                pthread_mutex_unlock(&(ht->mutex));
                 return 1;
             }
 
@@ -172,17 +180,20 @@ int hashtable_put(hashtable_t *ht, void *key, void *val) {
             e = e->next;
         }
         last->next = new_entry(key, val);
+        pthread_mutex_unlock(&(ht->mutex));
         return 0;
     }
 }
 
 int hashtable_remove(hashtable_t *ht, void *key, void **dst) {
+    pthread_mutex_lock(&(ht->mutex));
     int hash  = ht->hash_func(key);
     int index = hash_function(hash, ht->cap);
 
     ht->size -= 1;
     
     if (ht->table[index] == NULL) {
+        pthread_mutex_unlock(&(ht->mutex));
         return 0;
     } else {
         hashtable_entry *e    = ht->table[index];
@@ -199,6 +210,7 @@ int hashtable_remove(hashtable_t *ht, void *key, void **dst) {
                 } else {
                     prev->next = e->next;
                 }
+                pthread_mutex_unlock(&(ht->mutex));
                 return 1;
             }
 
@@ -206,6 +218,7 @@ int hashtable_remove(hashtable_t *ht, void *key, void **dst) {
             e = e->next;
         }
 
+        pthread_mutex_unlock(&(ht->mutex));
         return 0;
     }
 }
