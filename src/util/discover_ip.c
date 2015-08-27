@@ -1,5 +1,7 @@
 #include "discover_ip.h"
 
+#include <curl/curl.h>
+
 size_t write_fn(char *ptr, size_t size, size_t nmemb, void *data) {
     *((char**) data) = ptr;
 
@@ -24,6 +26,7 @@ int discover_ip(struct in_addr *ip) {
     if (code != CURLE_OK)
         return code;
 
-    // sorry
+    // inet_aton returns 1 on success,
+    // we want 0 on success 
     return !inet_aton(data, ip);
 }

@@ -1,7 +1,6 @@
-#include <stdlib.h>
+#pragma once
 
 #include "uriparser/Uri.h"
-
 
 int parse_uri(UriUriA *dst, char *str);
 

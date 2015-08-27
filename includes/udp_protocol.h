@@ -1,10 +1,5 @@
-#include <stdlib.h>
-#include <string.h>
+#include <stdint.h>
 #include <sys/socket.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
-
-#include "net.h"
 
 #define MAGIC_CONNECTION_ID 0x41727101980
 #define CONNECTION_ACTION   0
@@ -18,24 +13,24 @@
 #define ANNOUNCE_NUM_WANT_DEFAULT -1
 #define ANNOUNCE_NO_EXTENSIONS    0
 
-typedef struct ConnectRequest {
+typedef struct udpt_connect_req {
     int64_t connection_id;
     int32_t action;
     int32_t transaction_id;
-} ConnectRequest;
+} udpt_connect_req;
 
-ssize_t send_connect_request(ConnectRequest *req,
+ssize_t send_connect_request(udpt_connect_req *req,
     int sock, struct sockaddr *addr);
 
-typedef struct ConnectResponse {
+typedef struct udpt_connect_resp {
     int32_t action;
     int32_t transaction_id;
     int64_t connection_id;
-} ConnectResponse;
+} udpt_connect_resp;
 
-ssize_t receive_connect_response(ConnectResponse* res, int sock);
+ssize_t receive_connect_response(udpt_connect_resp* res, int sock);
 
-typedef struct AnnounceRequest {
+typedef struct udpt_announce_req {
     int64_t  connection_id;
     int32_t  action;
     int32_t  transaction_id;
@@ -50,25 +45,25 @@ typedef struct AnnounceRequest {
     int32_t  num_want;
     uint16_t port;
     uint16_t extensions;
-} AnnounceRequest;
+} udpt_announce_req;
 
-ssize_t send_announce_request(AnnounceRequest *req,
+ssize_t send_announce_request(udpt_announce_req *req,
     int sock, struct sockaddr *addr);
 
-typedef struct PeerInfo {
+typedef struct udpt_peer {
     int32_t ip;
     uint16_t port;
-    struct PeerInfo *next;
-} PeerInfo;
+    struct udpt_peer *next;
+} udpt_peer;
 
-typedef struct AnnounceResponse {
+typedef struct udpt_announce_resp {
     int32_t action;
     int32_t transaction_id;
     int32_t interval;
     int32_t leechers;
     int32_t seeders;
     int32_t peer_count;
-    PeerInfo *peers;
-} AnnounceResponse;
+    udpt_peer *peers;
+} udpt_announce_resp;
 
-ssize_t receive_announce_response(AnnounceResponse *res, int sock);
+ssize_t receive_announce_response(udpt_announce_resp *res, int sock);

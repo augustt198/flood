@@ -1,5 +1,7 @@
 #include "uri_util.h"
 
+#include <stdlib.h>
+
 int parse_uri(UriUriA *dst, char *str) {
     UriParserStateA state;
     state.uri = dst;
