@@ -259,7 +259,9 @@ int hashtable_iter_next(hashtable_iter_t *iter, void **keydst, void **valdst) {
         iter->index = index;
     }
 
-    *keydst = e->key;
-    *valdst = e->val;
+    if (keydst != NULL)
+        *keydst = e->key;
+    if (valdst != NULL)
+        *valdst = e->val;
     return 1;
 }

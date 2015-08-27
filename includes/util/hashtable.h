@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string.h>
+#include <stdint.h>
 
 // A function for hashing a key.
 typedef unsigned int (*hashtable_hash_func)(void *key);
