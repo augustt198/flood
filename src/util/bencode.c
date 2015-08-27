@@ -136,11 +136,10 @@ int b_parse_list(char *string, int len, int *pos, bencode_value *dst) {
 
 int b_parse_dict(char *string, int len, int *pos, bencode_value *dst) {
     EOF_CHECK(pos, len);
-    list_t *dict = malloc(sizeof(list_t));
-    list_new(dict, sizeof(bencode_dict_entry*));
+    hashtable_t *dict = malloc(sizeof(hashtable_t));
+    hashtable_init(dict, hash_func_str, cmp_func_str);
 
     while (string[*pos] != 'e') {
-        bencode_dict_entry *entry = malloc(sizeof(bencode_dict_entry));
         bencode_value key;
         bencode_value *val = malloc(sizeof(bencode_value));
 
@@ -155,30 +154,14 @@ int b_parse_dict(char *string, int len, int *pos, bencode_value *dst) {
 
         if (key.type != BENCODE_STRING)
             return -2;
-        entry->key   = key.string.ptr;
-        entry->value = val;
-        list_append(dict, &entry);
 
+        hashtable_put(dict, key.string.ptr, val);
     }
     *pos += 1;
 
     dst->type = BENCODE_DICT;
     dst->dict = dict;
     return 0;
-}
-
-int dict_lookup(bencode_dict *dict, char *key, bencode_value **dst) {
-    list_iter_start(dict);
-    while (list_iter_has_next(dict)) {
-        bencode_dict_entry *entry;
-        list_iter_next(dict, &entry);
-        if (strcmp(entry->key, key) == 0) {
-            *dst = entry->value;
-            return 0;
-        }
-    }
-
-    return -1;
 }
 
 // number of digits in the decimal representation
@@ -223,15 +206,19 @@ int b_to_string_len(bencode_value *val) {
         len = 1 + sum + 1;
     } else if (type == BENCODE_DICT) {
         int sum = 0;
-        list_node *node = val->dict->head;
-        while (node != NULL) {
-            bencode_dict_entry *entry = *((bencode_dict_entry**) node->data);
-            int key_len = strlen(entry->key);
-            int val_len = b_to_string_len(entry->value);
-            // <key len>:<key><value>
-            sum += declen(key_len) + 1 + key_len + val_len;
+        hashtable_iter_t iter;
+        hashtable_iterator(val->dict, &iter);
+        while (hashtable_iter_has_next(&iter)) {
+            void *key, *val;
+            hashtable_iter_next(&iter, &key, &val);
+            int key_len = strlen((char*) key);
 
-            node = node->next;
+            bencode_value *bval = (bencode_value*) val;
+            int val_len = b_to_string_len(bval);
+
+            // <key len>:<key><value>
+            int pair_len = declen(key_len) + 1 + key_len + val_len;
+            sum += pair_len;
         }
         // d<pairs>e 
         len = 1 + sum + 1;
@@ -281,10 +268,23 @@ void b_to_string(char *dst, int *i, bencode_value *val) {
     } else if (type == BENCODE_DICT) {
         dst[*i] = 'd';
         *i += 1;
-        list_node *node = val->dict->head;
-        while (node != NULL) {
-            bencode_dict_entry *entry = *((bencode_dict_entry**) node->data);
-            char *key   = entry->key;
+
+        int keys_len = hashtable_size(val->dict);
+        char **keys = malloc(sizeof(char*) * keys_len);
+        hashtable_iter_t iter;
+        hashtable_iterator(val->dict, &iter);
+        for (int j = 0; hashtable_iter_has_next(&iter); j++) {
+            char *key;
+            hashtable_iter_next(&iter, (void**) &key, NULL);
+            keys[j] = key;
+        }
+        qsort(
+            keys, keys_len, sizeof(char*),
+            (int (*)(const void *, const void *)) strcmp
+        );
+
+        for (int j = 0; j < keys_len; j++) {
+            char *key = keys[j];
             int key_len = strlen(key);
             write_num(dst, i, key_len);
             dst[*i] = ':';
@@ -292,11 +292,12 @@ void b_to_string(char *dst, int *i, bencode_value *val) {
             memcpy(dst + *i, key, key_len);
             *i += key_len;
 
-            bencode_value *pair_val = entry->value;
+            bencode_value *pair_val;
+            hashtable_get(val->dict, key, (void**) &pair_val);
+            
             b_to_string(dst, i, pair_val);
-
-            node = node->next;
         }
+        
         dst[*i] = 'e';
         *i += 1;
     }

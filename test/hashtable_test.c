@@ -51,6 +51,19 @@ void test_strings() {
 
         assert(strcmp(res, vals[i]) == 0);
     }
+
+    hashtable_iter_t iter;
+    hashtable_iterator(&map, &iter);
+
+    int count = 0;
+    while (hashtable_iter_has_next(&iter)) {
+        char *key;
+        char *val;
+        hashtable_iter_next(&iter, (void**) &key, (void**) &val);
+
+        count++;
+    }
+    assert(count == SIZE);
     
     for (int i = 0; i < SIZE; i++) {
         char *res;

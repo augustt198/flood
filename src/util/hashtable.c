@@ -214,12 +214,12 @@ int hashtable_size(hashtable_t *ht) {
     return ht->size;
 }
 
-int hashtable_iter(hashtable_t *ht, hashtable_iter_func ifn) {
+int hashtable_foreach(hashtable_t *ht, hashtable_foreach_func ifn, void *arg) {
     int count = 0;
     for (int i = 0; i < ht->cap; i++) {
         hashtable_entry *e = ht->table[i];
         while (e != NULL) {
-            if (ifn(e->key, e->val) == HASHTABLE_ITER_STOP)
+            if (ifn(e->key, e->val, arg) == HASHTABLE_ITER_STOP)
                 goto done;
             count++;
 
@@ -228,4 +228,38 @@ int hashtable_iter(hashtable_t *ht, hashtable_iter_func ifn) {
     }
     done:
     return count;
+}
+
+void hashtable_iterator(hashtable_t *ht, hashtable_iter_t *iter) {
+    iter->ht = ht;
+
+    int index = 0;
+    hashtable_entry *next = NULL;
+    while (index < ht->cap && (next = ht->table[index++]) == NULL);
+
+    iter->index = index;
+    iter->next  = next;
+}
+
+int hashtable_iter_has_next(hashtable_iter_t *iter) {
+    return iter->next != NULL;
+}
+
+int hashtable_iter_next(hashtable_iter_t *iter, void **keydst, void **valdst) {
+    hashtable_entry *e = iter->next;
+    if (e == NULL) {
+        return 0;
+    }
+    
+    if ((iter->next = iter->next->next) == NULL) {
+        hashtable_entry **table = iter->ht->table;
+        int index = iter->index;
+        while (index < iter->ht->cap &&
+            (iter->next = table[index++]) == NULL);
+        iter->index = index;
+    }
+
+    *keydst = e->key;
+    *valdst = e->val;
+    return 1;
 }

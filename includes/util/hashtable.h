@@ -1,3 +1,5 @@
+#pragma once
+
 #include <string.h>
 
 // A function for hashing a key.
@@ -11,7 +13,7 @@ typedef int (*hashtable_cmp_func)(void *p1, void *p2);
 // returns:
 //  * HASHTABLE_ITER_CONTINUE to continue iteration
 //  * HASHTABLE_ITER_STOP to stop iteration
-typedef int (*hashtable_iter_func)(void *key, void *val);
+typedef int (*hashtable_foreach_func)(void *key, void *val, void *arg);
 
 typedef struct hashtable_entry {
     void *key;
@@ -27,6 +29,12 @@ typedef struct {
     hashtable_hash_func hash_func;
     hashtable_cmp_func  cmp_func;
 } hashtable_t;
+
+typedef struct {
+    hashtable_t *ht;
+    int index;
+    hashtable_entry *next;
+} hashtable_iter_t;
 
 // Initializes a hashtable, using the given hash
 // function and comparison function.
@@ -63,7 +71,15 @@ int hashtable_size(hashtable_t *ht);
 // Iteration is stopped when the given iteration
 // function returns HASHTABLE_ITER_STOP (or no
 // more pairs are left).
-int hashtable_iter(hashtable_t *ht, hashtable_iter_func ifn);
+//
+// An optional argument can be passed to the
+// iteration function via `arg`.
+int hashtable_foreach(hashtable_t *ht, hashtable_foreach_func ifn, void *arg);
+
+void hashtable_iterator(hashtable_t *ht, hashtable_iter_t *iter);
+
+int hashtable_iter_has_next(hashtable_iter_t *iter);
+int hashtable_iter_next(hashtable_iter_t *iter, void **keydst, void **valdst);
 
 unsigned int fnv_1a_hash(char *bytes, int len);
 unsigned int fnv_1a_hash_str(char *str);

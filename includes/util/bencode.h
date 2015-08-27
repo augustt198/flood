@@ -1,6 +1,7 @@
 #pragma once
 
 #include "list.h"
+#include "hashtable.h"
 
 typedef enum bencode_type {
     BENCODE_STRING,
@@ -17,9 +18,7 @@ typedef struct bencode_string {
 typedef long long bencode_integer;
 typedef list_t    bencode_list;
 
-// dicts are just a linked list
-// of bencode_dict_entry
-typedef list_t bencode_dict;
+typedef hashtable_t bencode_dict;
 
 typedef struct bencode_value {
     bencode_type type;

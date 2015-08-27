@@ -50,14 +50,13 @@ int main() {
     status = bencode_parse(str, strlen(str), &val);
     assert(status == 0);
     assert(val.type == BENCODE_DICT);
-    assert(val.dict->len == 1);
+    assert(hashtable_size(val.dict) == 1);
 
-    bencode_dict_entry *entry;
-    list_get(val.dict, 0, &entry);
+    bencode_value *value;
+    assert(hashtable_get(val.dict, "foo", (void**) &value) == 1);
 
-    assert(strcmp(entry->key, "foo") == 0);
-    assert(entry->value->type == BENCODE_INTEGER);
-    assert(entry->value->integer == 123);
+    assert(value->type == BENCODE_INTEGER);
+    assert(value->integer == 123);
 
     printf("All assertions passed!\n");
 }
