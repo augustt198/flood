@@ -313,3 +313,62 @@ int bencode_to_string(char **strp, bencode_value *val) {
     return len;
 }
 
+// prints `len` characters from `str`.
+// non-printable characters are
+// represented by '?'.
+void safe_print(char *str, int len) {
+    for (int i = 0; i < len; i++) {
+        if (isprint(str[i]))
+            putchar(str[i]);
+        else
+            putchar('?');
+    }
+}
+
+void b_debug(bencode_value *val, int lvl) {
+    for (int i = 0; i < lvl * 4; i++)
+        putchar(' ');
+
+    bencode_type type = val->type;
+
+    if (type == BENCODE_STRING) {
+        bencode_string str = val->string;
+        printf("STRING (len=%d): ", str.len);
+        int len = str.len > 50 ? 50 : str.len;
+        safe_print(str.ptr, len);
+        if (str.len > 50)
+            printf("...");
+        putchar('\n');
+    } else if (type == BENCODE_INTEGER) {
+        printf("INTEGER: %lld\n", val->integer);
+    } else if (type == BENCODE_LIST) {
+        bencode_list *list = val->list;
+        printf("LIST (len=%d):\n", list_len(list));
+        list_node *node = list->head;
+        while (node != NULL) {
+            bencode_value *v = *((bencode_value**) node->data);
+            b_debug(v, lvl + 1); 
+            node = node->next;
+        }
+    } else if (type == BENCODE_DICT) {
+        bencode_dict *dict = val->dict;
+        printf("DICT (len=%d):\n", hashtable_size(dict));
+        
+        hashtable_iter_t iter;
+        hashtable_iterator(dict, &iter);
+        while (hashtable_iter_has_next(&iter)) {
+            char *k;
+            bencode_value *v;
+            hashtable_iter_next(&iter, (void**) &k, (void**) &v);
+
+            for (int i = 0; i < (lvl + 1) * 4; i++)
+                putchar(' ');
+            printf("%s ->\n", k);
+            b_debug(v, lvl + 2); 
+        }
+    }
+}
+
+void bencode_debug(bencode_value *val) {
+    b_debug(val, 0);
+}

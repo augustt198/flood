@@ -39,3 +39,5 @@ typedef struct bencode_dict_entry {
 
 int bencode_parse(char *string, int len, bencode_value *dst);
 int bencode_to_string(char **strp, bencode_value *val);
+
+void bencode_debug(bencode_value *val);
