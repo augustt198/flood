@@ -6,6 +6,7 @@ A BitTorrent client.
 
 - [x] Bencode decoder/encoder
 - [x] UDP tracker protocol
+- [ ] HTTP tracker protocol
 - [ ] Peer protocol
   - [ ] Extension protocol
   - [ ] Metadata downloading
