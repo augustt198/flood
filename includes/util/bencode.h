@@ -28,6 +28,8 @@ typedef struct bencode_value {
       struct { bencode_list      *list;   };
       struct { bencode_dict      *dict;   };
     };
+    int start;
+    int end;
 } bencode_value;
 
 int dict_lookup(bencode_dict *dict, char *key, bencode_value **dst);

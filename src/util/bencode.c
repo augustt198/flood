@@ -30,6 +30,7 @@ int bencode_parse(char *string, int len, bencode_value *dst) {
 
 int b_parse_any(char *string, int len, int *pos, bencode_value *dst) {
     EOF_CHECK(pos, len);
+    dst->start = *pos;
     char prefix = string[*pos];
     *pos += 1;
     switch (prefix) {
@@ -77,6 +78,7 @@ int b_parse_string(char *string, int len, int *pos,
 
     dst->type   = BENCODE_STRING;
     dst->string = bstr;
+    dst->end    = *pos - 1;
 
     return 0;
 }
@@ -104,6 +106,7 @@ int b_parse_int(char *string, int len,
     if (string[*pos] != 'e') {
         return -2;
     }
+    dst->end = *pos;
     *pos += 1;
 
     dst->type = BENCODE_INTEGER;
@@ -126,6 +129,7 @@ int b_parse_list(char *string, int len, int *pos, bencode_value *dst) {
         EOF_CHECK(pos, len);
     }
 
+    dst->end = *pos;
     *pos += 1;
 
     dst->type = BENCODE_LIST;
@@ -157,6 +161,7 @@ int b_parse_dict(char *string, int len, int *pos, bencode_value *dst) {
 
         hashtable_put(dict, key.string.ptr, val);
     }
+    dst->end = *pos;
     *pos += 1;
 
     dst->type = BENCODE_DICT;

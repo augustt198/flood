@@ -1,5 +1,5 @@
 CC=clang
-CFLAGS=-Wall -g -luriparser -lpthread -lcurl
+CFLAGS=-Wall -g -luriparser -lpthread -lcurl -lcrypto -largp
 LD=clang++
 
 INCLUDES=-Iincludes/ -Iincludes/util/

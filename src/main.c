@@ -1,7 +1,10 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+#include <argp.h>
+
 #include "bencode.h"
+#include "torrent.h"
 
 void die(char *msg) {
     fputs(msg, stderr);
@@ -14,34 +17,72 @@ void usage() {
 
 void process_torrent_file(char *fp);
 
-int main(int argc, char **argv) {
-    if (argc < 3)
-        usage();
+const char *argp_program_version = "Flood v0.1";
+static char doc[] = "A BitTorrent client.";
+static char args_doc[] = "[options]";
+static struct argp_option options[] = {
+    { "torrent", 't', "file", 0, "Download using a .torrent file." },
+    { "magnet",  'm', "link", 0, "Download using a magnet link. " },
+    { 0 },
+};
 
-    // torrent file path
-    char *torrent_fp = argv[2];
-    process_torrent_file(torrent_fp);
+struct arguments {
+    enum {
+        UNKNOWN_MODE, TORRENT_FILE_MODE, MAGNET_LINK_MODE
+    } mode;
+    union {
+        char *torrent_file;
+        char *magnet_link;
+    };
+};
+
+static error_t parse_opt(int key, char *arg, struct argp_state *state) {
+    struct arguments *args = state->input;
+    switch (key) {
+        case 't':
+            if (args->mode != UNKNOWN_MODE)
+                argp_usage(state);
+            args->mode         = TORRENT_FILE_MODE;
+            args->torrent_file = arg;
+            break;
+        case 'm':
+            if (args->mode != UNKNOWN_MODE)
+                argp_usage(state);
+            args->mode        = MAGNET_LINK_MODE;
+            args->magnet_link = arg;
+            break;
+        case ARGP_KEY_END:
+            if (args->mode == UNKNOWN_MODE)
+                argp_usage(state);
+        default:
+            return ARGP_ERR_UNKNOWN;
+    }
+
+    return 0;
 }
 
-void process_torrent_file(char *fp) {
-    FILE *file = fopen(fp, "rb");
-    if (!file)
-        die("Could not open file\n");
+static struct argp argp = { options, parse_opt, args_doc, doc };
 
-    fseek(file, 0, SEEK_END);
-    long len = ftell(file);
-    fseek(file, 0, SEEK_SET);
+int main(int argc, char **argv) {
+    struct arguments args = {UNKNOWN_MODE, {0}};
 
-    char *data = malloc(len);
-    fread(data, 1, len, file);
+    argp_parse(&argp, argc, argv, 0, 0, &args);
 
-    bencode_value bencode;
-    if (bencode_parse(data, len, &bencode) != 0)
-        die("Invalid bencode\n");
+    torrent_t torrent;
+    if (args.mode == TORRENT_FILE_MODE) {
+        int status = torrent_init_from_file(args.torrent_file, &torrent);
+        if (status != 0) {
+            printf("Aborting due to errors\n");
+            return status;
+        }
+    } else if (args.mode == MAGNET_LINK_MODE) {
+        printf("Magnet link: %s\n", args.magnet_link);
+    }
 
-    if (bencode.type != BENCODE_DICT)
-        die("Expected top level value to be a dictionary\n");
+    printf("Torrent trackers (%d):\n", torrent.tracker_count);
+    for (int i = 0; i < torrent.tracker_count; i++) {
+        printf("%s\n", torrent.trackers[i]);
+    }
 
-    printf("Decoded torrent file:\n");
-    bencode_debug(&bencode);
+    return 0;
 }
