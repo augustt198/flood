@@ -2,11 +2,14 @@
 
 #include "uriparser/Uri.h"
 
-int parse_uri(UriUriA *dst, char *str);
+typedef UriUriA uri_t;
+typedef UriQueryListA uri_query_list_t;
 
-char *uri_scheme(UriUriA *uri);
-char *uri_userinfo(UriUriA *uri);
-char *uri_host(UriUriA *uri);
-int uri_port(UriUriA *uri);
+int parse_uri(uri_t *dst, char *str);
 
-int uri_query(UriQueryListA **dst, UriUriA *uri, int *items);
+char *uri_scheme(uri_t *uri);
+char *uri_userinfo(uri_t *uri);
+char *uri_host(uri_t *uri);
+int uri_port(uri_t *uri);
+
+int uri_query(uri_query_list_t **dst, uri_t *uri, int *items);

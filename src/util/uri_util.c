@@ -2,7 +2,7 @@
 
 #include <stdlib.h>
 
-int parse_uri(UriUriA *dst, char *str) {
+int parse_uri(uri_t *dst, char *str) {
     UriParserStateA state;
     state.uri = dst;
 
@@ -16,19 +16,19 @@ char *textrange2str(UriTextRangeA *range) {
     );
 }
 
-char *uri_scheme(UriUriA *uri) {
+char *uri_scheme(uri_t *uri) {
     return textrange2str(&(uri->scheme));
 }
 
-char *uri_userinfo(UriUriA *uri) {
+char *uri_userinfo(uri_t *uri) {
     return textrange2str(&(uri->userInfo));
 }
 
-char *uri_host(UriUriA *uri) {
+char *uri_host(uri_t *uri) {
     return textrange2str(&(uri->hostText));
 }
 
-int uri_port(UriUriA *uri) {
+int uri_port(uri_t *uri) {
     UriTextRangeA range = uri->portText;
     int port = 0;
 
@@ -38,7 +38,7 @@ int uri_port(UriUriA *uri) {
     return port;
 }
 
-int uri_query(UriQueryListA **dst, UriUriA *uri, int *items) {
+int uri_query(uri_query_list_t **dst, uri_t *uri, int *items) {
     return uriDissectQueryMallocA(
         dst, items,
         uri->query.first, uri->query.afterLast
