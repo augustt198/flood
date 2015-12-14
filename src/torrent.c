@@ -12,6 +12,8 @@
 
 void prepare_trackers(bencode_value *bencode, torrent_t *t);
 
+void prepare_info_section(bencode_value *bencode, torrent_t *t);
+
 int torrent_init_from_file(char *filepath, torrent_t *t) {
     FILE *file = fopen(filepath, "rb");
     if (!file) {
@@ -80,4 +82,18 @@ void prepare_trackers(bencode_value *bencode, torrent_t *t) {
 
     t->tracker_count = tracker_count;
     t->trackers      = trackers;
+}
+
+void prepare_info_section(bencode_value *bencode, torrent_t *t) {
+    info_section_t *info = calloc(1, sizeof(info_section_t));
+    
+    bencode_value *b_info;
+    hashtable_get(bencode->dict, "info", (void**) &b_info);
+
+    bencode_value *b_files;
+    if (hashtable_get(info->dict, "files", (void**) &b_files)) {
+        info->mode = MULTI_FILE_MODE;
+    } else {
+        info->mode = SINGLE_FILE_MODE;
+    }
 }
