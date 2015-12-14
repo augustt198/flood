@@ -44,3 +44,31 @@ int uri_query(uri_query_list_t **dst, uri_t *uri, int *items) {
         uri->query.first, uri->query.afterLast
     );
 }
+
+uri_query_list_t *uri_query_list_append(char *key, char *value,
+    uri_query_list_t *dst, uri_query_list_t *prev) {
+
+    dst->key   = key;
+    dst->value = value;
+    dst->next  = NULL;
+
+    if (prev != NULL) {
+        prev->next = dst;
+    }
+
+    return dst;
+}
+
+int uri_to_string(uri_t *uri, char **dst) {
+    int len;
+    if (uriToStringCharsRequiredA(uri, &len) != URI_SUCCESS)
+        return -1;
+
+    len++; // trailing '\0'
+
+    *dst = malloc(len);
+    if (uriToStringA(*dst, uri, len, NULL) != URI_SUCCESS)
+        return -1;
+
+    return len - 1;
+}
