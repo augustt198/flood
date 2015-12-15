@@ -12,7 +12,7 @@
 
 void prepare_trackers(bencode_value *bencode, torrent_t *t);
 
-void prepare_info_section(bencode_value *bencode, torrent_t *t);
+int prepare_info_section(bencode_value *bencode, torrent_t *t);
 
 int torrent_init_from_file(char *filepath, torrent_t *t) {
     FILE *file = fopen(filepath, "rb");
@@ -44,6 +44,7 @@ int torrent_init_from_file(char *filepath, torrent_t *t) {
     memcpy(t->info_hash, hash, 20);
 
     prepare_trackers(&bencode, t);
+    prepare_info_section(&bencode, t);
     
     return 0;
 }
@@ -84,16 +85,25 @@ void prepare_trackers(bencode_value *bencode, torrent_t *t) {
     t->trackers      = trackers;
 }
 
-void prepare_info_section(bencode_value *bencode, torrent_t *t) {
-    info_section_t *info = calloc(1, sizeof(info_section_t));
-    
-    bencode_value *b_info;
-    hashtable_get(bencode->dict, "info", (void**) &b_info);
+// Loads info section of `bencode` into `t`
+// returns: 0 if successful
+int prepare_info_section(bencode_value *bencode, torrent_t *t) {
+    info_section_t *info = &(t->info);
 
+    bencode_value *b_info;
+    if (!hashtable_get(bencode->dict, "info", (void**) &b_info))
+        return -1;
+
+    bencode_value *b_name;
+    if (hashtable_get(b_info->dict, "name", (void**) &b_name)) {
+        info->file_name = b_name->string.ptr;
+    }
     bencode_value *b_files;
-    if (hashtable_get(info->dict, "files", (void**) &b_files)) {
+    if (hashtable_get(b_info->dict, "files", (void**) &b_files)) {
         info->mode = MULTI_FILE_MODE;
     } else {
         info->mode = SINGLE_FILE_MODE;
     }
+
+    return 0;
 }

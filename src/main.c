@@ -84,5 +84,7 @@ int main(int argc, char **argv) {
         printf("%s\n", torrent.trackers[i]);
     }
 
+    printf("File name: %s\n", torrent.info.file_name);
+
     return 0;
 }
