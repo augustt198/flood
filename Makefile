@@ -2,7 +2,7 @@ CC=clang
 CFLAGS=-Wall -g -luriparser -lpthread -lcurl -lcrypto -largp
 LD=clang++
 
-INCLUDES=-Iincludes/ -Iincludes/util/
+INCLUDES=-Iincludes/ -Iincludes/util/ -I/usr/local/include -I/usr/local/opt/openssl/include
 SOURCES=$(wildcard src/*.c) $(wildcard src/util/*.c)
 
 MAIN_FILE=src/main.c
