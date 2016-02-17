@@ -1,5 +1,5 @@
 CC=clang
-CFLAGS=-Wall -g -luriparser -lpthread -lcurl -lcrypto -largp
+CFLAGS=-Wall -g -luriparser -lpthread -lcurl -lcrypto -largp -D__FLOOD_DEBUG
 LD=clang++
 
 INCLUDES=-Iincludes/ -Iincludes/util/ -I/usr/local/include -I/usr/local/opt/openssl/include
