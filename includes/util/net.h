@@ -7,3 +7,6 @@
 #ifndef ntohll
 #define ntohll(x) ((1==ntohl(1)) ? (x) : ((uint64_t)ntohl((x) & 0xFFFFFFFF) << 32) | ntohl((x) >> 32))
 #endif
+
+#include <sys/socket.h>
+int create_udp_socket(char *url, int *fd, struct sockaddr **res_addr);

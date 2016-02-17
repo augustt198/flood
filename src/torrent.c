@@ -6,9 +6,12 @@
 
 #include <stdlib.h>
 #include <openssl/sha.h>
+#include <arpa/inet.h>
 
 #define ERR_EXIT(msg) \
     do { fputs(msg, stderr); return -1; } while (0);
+
+#define TRACKER_POLL_FREQ 30
 
 void prepare_trackers(bencode_value *bencode, torrent_t *t);
 
@@ -54,11 +57,11 @@ void prepare_trackers(bencode_value *bencode, torrent_t *t) {
     bencode_value *announce;
     bencode_value *announce_list;
 
-    char **trackers = NULL;
+    char **tracker_urls = NULL;
 
     if (hashtable_get(bencode->dict, "announce-list", (void**) &announce_list)) {
         tracker_count = list_len(announce_list->list);
-        trackers = malloc(sizeof(char*) * (tracker_count + 1));
+        tracker_urls = malloc(sizeof(char*) * (tracker_count + 1));
         
         list_iter_start(announce_list->list);
         for (int i = 0; list_iter_has_next(announce_list->list); i++) {
@@ -68,21 +71,21 @@ void prepare_trackers(bencode_value *bencode, torrent_t *t) {
 
             bencode_value *tracker;
             list_get(sublist, 0, (void*) &tracker);
-            trackers[i] = tracker->string.ptr;
+            tracker_urls[i] = tracker->string.ptr;
         }
 
     } else {
-        trackers = malloc(sizeof(char*));
+        tracker_urls = malloc(sizeof(char*));
     }
   
     if (hashtable_get(bencode->dict, "announce", (void**) &announce)) {
         char *announce_str = announce->string.ptr;
-        trackers[tracker_count] = announce_str;
+        tracker_urls[tracker_count] = announce_str;
         tracker_count++;
     } 
 
     t->tracker_count = tracker_count;
-    t->trackers      = trackers;
+    t->tracker_urls  = tracker_urls;
 }
 
 // Loads info section of `bencode` into `t`
@@ -106,4 +109,34 @@ int prepare_info_section(bencode_value *bencode, torrent_t *t) {
     }
 
     return 0;
+}
+
+void tracker_find_peer(peer_t peer, void *handle) {
+    torrent_t *t = (torrent_t*) handle;
+    char ipstr[INET_ADDRSTRLEN] = {0};
+    inet_ntop(AF_INET, &peer.ip, ipstr, INET_ADDRSTRLEN);
+
+    debug("Found peer: %s:%d\n", ipstr, peer.port);
+}
+
+void start_trackers(torrent_t *t) {
+    tracker_t *prev = NULL;
+    for (int i = 0; i < t->tracker_count; i++) {
+        char *tracker_url = t->tracker_urls[i];
+        
+        tracker_t *tracker = calloc(1, sizeof(tracker_t));
+        tracker->url       = tracker_url;
+        tracker->handle    = t;
+        tracker->poll_freq = TRACKER_POLL_FREQ;
+        tracker->find_fn   = tracker_find_peer;
+
+        tracker_start(tracker);
+
+        if (prev == NULL) {
+            t->trackers = tracker;
+        } else {
+            prev->next = tracker;
+        }
+        prev = tracker;
+    }
 }

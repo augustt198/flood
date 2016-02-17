@@ -1,3 +1,5 @@
+#pragma once
+
 #include <stdint.h>
 #include <sys/socket.h>
 
@@ -10,8 +12,8 @@
 #define ANNOUNCE_EVENT_STARTED   2
 #define ANNOUNCE_EVENT_STOPPED   3
 
-#define ANNOUNCE_NUM_WANT_DEFAULT -1
-#define ANNOUNCE_NO_EXTENSIONS    0
+#define ANNOUNCE_NUM_WANTED_DEFAULT -1
+#define ANNOUNCE_NO_EXTENSIONS      0
 
 typedef struct udpt_connect_req {
     int64_t connection_id;

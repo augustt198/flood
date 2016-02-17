@@ -1,5 +1,7 @@
 #include <stdlib.h>
 #include <stdio.h>
+#include <unistd.h>
+#include <time.h>
 
 #include <argp.h>
 
@@ -63,7 +65,13 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state) {
 
 static struct argp argp = { options, parse_opt, args_doc, doc };
 
+void setup() {
+    srand(time(NULL));
+}
+
 int main(int argc, char **argv) {
+    setup();
+
     struct arguments args = {UNKNOWN_MODE, {0}};
 
     argp_parse(&argp, argc, argv, 0, 0, &args);
@@ -81,10 +89,16 @@ int main(int argc, char **argv) {
 
     printf("Torrent trackers (%d):\n", torrent.tracker_count);
     for (int i = 0; i < torrent.tracker_count; i++) {
-        printf("%s\n", torrent.trackers[i]);
+        printf("%s\n", torrent.tracker_urls[i]);
     }
 
     printf("File name: %s\n", torrent.info.file_name);
+
+    start_trackers(&torrent);
+
+    while (true) {
+        sleep(1);
+    }
 
     return 0;
 }
