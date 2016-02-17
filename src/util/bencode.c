@@ -17,8 +17,7 @@ int b_parse_dict   (char *string, int len, int *pos, bencode_value *dst);
 
 
 char *itoa(int n) {
-    char *buf = malloc(19);
-    memset(buf, 0, 19);
+    char *buf = calloc(1, 19);
     sprintf(buf, "%d", n);
     return buf;
 }
@@ -67,7 +66,7 @@ int b_parse_string(char *string, int len, int *pos,
     *pos += 1;
 
     // add 1 to include \0 at end
-    char *parsed_str = malloc(n + 1);
+    char *parsed_str = calloc(1, n + 1);
     for (int i = 0; i < n; i++) {
         EOF_CHECK(pos, len);
         parsed_str[i] = string[*pos];
@@ -310,7 +309,7 @@ void b_to_string(char *dst, int *i, bencode_value *val) {
 
 int bencode_to_string(char **strp, bencode_value *val) {
     int len   = b_to_string_len(val);
-    char *str = malloc(len + 1);
+    char *str = calloc(1, len + 1);
     int i     = 0;
     b_to_string(str, &i, val);
 
