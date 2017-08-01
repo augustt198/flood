@@ -7,6 +7,8 @@
 #include <arpa/inet.h>
 #include <util.h>
 
+#include "net.h"
+
 ssize_t send_handshake_request(peer_handshake *req, int sock, struct sockaddr *addr) {
     int buflen = 49 + req->pstrlen;
     char buffer[buflen];
@@ -74,6 +76,8 @@ ssize_t send_peer_message(peer_message *msg, int sock, struct sockaddr *addr) {
     } else if (msg->type == PEER_MSG_CANCEL) {
         msg_length = 13;
         msg_id = 8;
+    } else {
+        msg_length = -1;
     }
 
     ssize_t sb = 0; // sent bytes
