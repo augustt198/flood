@@ -22,10 +22,12 @@ int tracker_announce(tracker_t *t) {
         c_req.connection_id  = MAGIC_CONNECTION_ID;
         c_req.action         = CONNECTION_ACTION;
         c_req.transaction_id = rand();
+        printf("Sending\n");
         send_connect_request(&c_req, t->sock_fd, t->addr);
 
         udpt_connect_resp c_resp;
         receive_connect_response(&c_resp, t->sock_fd);
+        printf("received\n");
         
         if (c_resp.transaction_id != c_req.transaction_id) {
             debug("Bad transaction id received\n");
@@ -51,7 +53,9 @@ int tracker_announce(tracker_t *t) {
     a_req.num_want   = ANNOUNCE_NUM_WANTED_DEFAULT;
     a_req.extensions = ANNOUNCE_NO_EXTENSIONS;
 
+    printf("Announcing...\n");
     send_announce_request(&a_req, t->sock_fd, t->addr);
+    printf("Done announcing...\n");
 
     udpt_announce_resp a_resp;
     receive_announce_response(&a_resp, t->sock_fd);
@@ -61,6 +65,7 @@ int tracker_announce(tracker_t *t) {
         if (t->find_fn != NULL) {
             peer_t p = {peer->ip, peer->port};
             t->find_fn(p, t->handle);
+            //printf("Found one\n");
         }
         peer = peer->next;
     }

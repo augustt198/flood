@@ -9,3 +9,7 @@
 #endif
 
 long read_file(FILE *file, char **dst);
+
+int printf_safe(const char *fmt, ...);
+void printf_lock();
+void printf_unlock();

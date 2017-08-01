@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <time.h>
+#include <signal.h>
 
 #include <argp.h>
 
@@ -67,6 +68,7 @@ static struct argp argp = { options, parse_opt, args_doc, doc };
 
 void setup() {
     srand(time(NULL));
+    signal(SIGPIPE, SIG_IGN);    
 }
 
 int main(int argc, char **argv) {
