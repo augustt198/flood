@@ -1,6 +1,11 @@
 CC=clang
-CFLAGS=-Wall -Werror -Wno-error=unused-variable -g -luriparser -lpthread -lcurl -lcrypto -largp -D__FLOOD_DEBUG
+CFLAGS=-Wall -Werror -Wno-error=unused-variable -g -luriparser -lpthread -lcurl -lcrypto -D__FLOOD_DEBUG
 LD=clang++
+
+UNAME := $(shell uname)
+ifeq ($(UNAME),Darwin)
+	CFLAGS += -largp
+endif
 
 INCLUDES=-Iincludes/ -Iincludes/util/ -I/usr/local/include -I/usr/local/opt/openssl/include
 SOURCES=$(wildcard src/*.c) $(wildcard src/util/*.c)
