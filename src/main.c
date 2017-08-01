@@ -68,7 +68,8 @@ static struct argp argp = { options, parse_opt, args_doc, doc };
 
 void setup() {
     srand(time(NULL));
-    signal(SIGPIPE, SIG_IGN);    
+    // don't kill process
+    signal(SIGPIPE, SIG_IGN);
 }
 
 int main(int argc, char **argv) {
@@ -90,7 +91,7 @@ int main(int argc, char **argv) {
     }
 
     printf("Torrent trackers (%d):\n", torrent.tracker_count);
-    for (int i = 0; i < torrent.tracker_count; i++) {
+    for (int i = 0; i < torrent.tracker_count && i < 10; i++) {
         printf("%s\n", torrent.tracker_urls[i]);
     }
 

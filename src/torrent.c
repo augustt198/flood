@@ -37,7 +37,7 @@ int torrent_init_from_file(char *filepath, torrent_t *t) {
     bencode_value bencode;
     if (bencode_parse(data, data_len, &bencode) != 0)
         ERR_EXIT("Invalid torrent file (bad bencode)\n");
-    
+
     bencode_value *info_sect;
     if (!hashtable_get(bencode.dict, "info", (void**) &info_sect))
         ERR_EXIT("Info section not found\n");
@@ -48,7 +48,6 @@ int torrent_init_from_file(char *filepath, torrent_t *t) {
         info_sect->end - info_sect->start + 1,
         (unsigned char*) hash
     );
-
     memcpy(t->info_hash, hash, 20);
 
     prepare_trackers(&bencode, t);
@@ -67,6 +66,7 @@ void prepare_trackers(bencode_value *bencode, torrent_t *t) {
     if (hashtable_get(bencode->dict, "announce-list", (void**) &announce_list)) {
         tracker_count = list_len(announce_list->list);
         tracker_urls = malloc(sizeof(char*) * (tracker_count + 1));
+        tracker_urls[tracker_count] = NULL;
         
         list_iter_start(announce_list->list);
         for (int i = 0; list_iter_has_next(announce_list->list); i++) {
