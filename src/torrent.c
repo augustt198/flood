@@ -13,7 +13,7 @@
 #include <unistd.h>
 
 #define ERR_EXIT(msg) \
-    do { fputs(msg, stderr); return -1; } while (0);
+    do { fputs(msg, stderr); return -1; } while (0)
 
 // in seconds
 #define TRACKER_POLL_FREQ 300
