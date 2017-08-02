@@ -7,6 +7,7 @@
 
 typedef struct client_config {
     int tracker_poll_frequency;
+    int peer_threads;
 } client_config_t;
 
 typedef struct client {
