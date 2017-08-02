@@ -55,7 +55,10 @@ void list_each(list_t *list, int (*fn)(int, void *));
 bool list_get(list_t *list, int idx, void *data);
 
 void list_iter_start(list_t *list);
+void list_iter_start_safe(list_t *list);
 
 bool list_iter_has_next(list_t *list);
 
 bool list_iter_next(list_t *list, void *data);
+
+void list_iter_stop_safe(list_t *list);

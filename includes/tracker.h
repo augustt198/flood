@@ -3,22 +3,25 @@
 #include <pthread.h>
 #include <stdbool.h>
 #include <stdint.h>
+#include "torrent.h"
 
-typedef struct peer {
+typedef struct discovered_peer {
     int ip;
     int port;
-} peer_t;
+} discovered_peer_t;
 
 typedef void (*tracker_stop_fn)(bool graceful);
 
-typedef void (*tracker_find_peer_fn)(peer_t peer, void *handle);
+typedef void (*tracker_find_peer_fn)(discovered_peer_t peer, void *handle);
 
 typedef struct tracker {
     char *url;
     tracker_stop_fn stop_fn;
+
+    torrent_t *torrent;
     
     // passed as parameter to find_fn
-    void *handle;
+    void *find_fn_handle;
     tracker_find_peer_fn find_fn;
 
     // polling frequency (seconds)

@@ -1,4 +1,4 @@
-#include "torrent.h"
+    #include "torrent.h"
 
 #include "bencode.h"
 #include "list.h"
@@ -52,7 +52,7 @@ int torrent_init_from_file(char *filepath, torrent_t *t) {
 
     prepare_trackers(&bencode, t);
     prepare_info_section(&bencode, t);
-    
+
     return 0;
 }
 
@@ -67,14 +67,14 @@ void prepare_trackers(bencode_value *bencode, torrent_t *t) {
         tracker_count = list_len(announce_list->list);
         tracker_urls = malloc(sizeof(char*) * (tracker_count + 1));
         tracker_urls[tracker_count] = NULL;
-        
+
         list_iter_start(announce_list->list);
         for (int i = 0; list_iter_has_next(announce_list->list); i++) {
             bencode_value *b_sublist;
             list_iter_next(announce_list->list, (void*) &b_sublist);
             list_t *sublist = b_sublist->list;
 
-            bencode_value *tracker;
+            bencode_value *tracker = (bencode_value*) 3;
             list_get(sublist, 0, (void*) &tracker);
             tracker_urls[i] = tracker->string.ptr;
         }
@@ -82,12 +82,12 @@ void prepare_trackers(bencode_value *bencode, torrent_t *t) {
     } else {
         tracker_urls = malloc(sizeof(char*));
     }
-  
+
     if (hashtable_get(bencode->dict, "announce", (void**) &announce)) {
         char *announce_str = announce->string.ptr;
         tracker_urls[tracker_count] = announce_str;
         tracker_count++;
-    } 
+    }
 
     t->tracker_count = tracker_count;
     t->tracker_urls  = tracker_urls;
@@ -116,8 +116,9 @@ int prepare_info_section(bencode_value *bencode, torrent_t *t) {
     return 0;
 }
 
+/*
 struct peer_thread_message {
-    peer_t peer;
+    discovered_peer_t peer;
     torrent_t *torrent;
 };
 
@@ -127,7 +128,7 @@ void *peer_ping_routine(void *handle) {
     if (total++ > 50) return NULL;
 
     struct peer_thread_message *msg = (struct peer_thread_message*) handle;
-    peer_t peer = msg->peer;
+    discovered_peer_t peer = msg->peer;
 
     struct sockaddr_in addr;
     memset(&addr, 0, sizeof(addr));
@@ -188,7 +189,7 @@ void *peer_ping_routine(void *handle) {
     return NULL;
 }
 
-void tracker_find_peer(peer_t peer, void *handle) {
+void tracker_find_peer(discovered_peer_t peer, void *handle) {
     torrent_t *t = (torrent_t*) handle;
     char ipstr[INET_ADDRSTRLEN] = {0};
     inet_ntop(AF_INET, &peer.ip, ipstr, INET_ADDRSTRLEN);
@@ -202,14 +203,16 @@ void tracker_find_peer(peer_t peer, void *handle) {
     pthread_create(&thread, NULL, peer_ping_routine, msg);
 }
 
+
+
 void start_trackers(torrent_t *t) {
     tracker_t *prev = NULL;
     for (int i = 0; i < t->tracker_count; i++) {
         char *tracker_url = t->tracker_urls[i];
-        
+
         tracker_t *tracker = calloc(1, sizeof(tracker_t));
         tracker->url       = tracker_url;
-        tracker->handle    = t;
+        tracker->find_fn_handle    = t;
         tracker->poll_freq = TRACKER_POLL_FREQ;
         tracker->find_fn   = tracker_find_peer;
 
@@ -223,3 +226,4 @@ void start_trackers(torrent_t *t) {
         prev = tracker;
     }
 }
+*/

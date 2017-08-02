@@ -8,9 +8,10 @@
 #include "util.h"
 #include "udp_protocol.h"
 #include "net.h"
+#include "list.h"
 
 int tracker_announce(tracker_t *t) {
-    torrent_t *torrent = (torrent_t*) t->handle;
+    torrent_t *torrent = (torrent_t*) t->torrent;
 
     if (t->sock_fd == -1) {
         int res = create_udp_socket(t->url, &(t->sock_fd), &(t->addr));
@@ -28,7 +29,7 @@ int tracker_announce(tracker_t *t) {
         udpt_connect_resp c_resp;
         receive_connect_response(&c_resp, t->sock_fd);
         printf("received\n");
-        
+
         if (c_resp.transaction_id != c_req.transaction_id) {
             debug("Bad transaction id received\n");
             return -1;
@@ -63,8 +64,8 @@ int tracker_announce(tracker_t *t) {
     udpt_peer *peer = a_resp.peers;
     while (peer != NULL) {
         if (t->find_fn != NULL) {
-            peer_t p = {peer->ip, peer->port};
-            t->find_fn(p, t->handle);
+            discovered_peer_t p = {peer->ip, peer->port};
+            t->find_fn(p, t->find_fn_handle);
             //printf("Found one\n");
         }
         peer = peer->next;
@@ -75,16 +76,18 @@ int tracker_announce(tracker_t *t) {
 
 void *tracker_update_routine(void *arg) {
     tracker_t *t = (tracker_t*) arg;
+    printf("START\n");
 
     int tick = 0;
     while (!(t->stopped)) {
         if (tick % t->poll_freq == 0) {
-            tracker_announce(t);            
+            tracker_announce(t);
         }
 
         tick++;
         sleep(1);
     }
+    printf("STOP\n");
 
     return NULL;
 }
@@ -95,6 +98,7 @@ bool tracker_start(tracker_t *t) {
         pthread_t *thread = malloc(sizeof(pthread_t));
         t->update_thread = thread;
         pthread_create(thread, NULL, tracker_update_routine, t);
+
         return true;
     } else {
         return false;

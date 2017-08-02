@@ -8,6 +8,7 @@
 
 #include "bencode.h"
 #include "torrent.h"
+#include "client.h"
 
 void die(char *msg) {
     fputs(msg, stderr);
@@ -66,11 +67,19 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state) {
 
 static struct argp argp = { options, parse_opt, args_doc, doc };
 
+static bool continueRunning = true;
+void interruptHandler(int _) {
+    continueRunning = false;
+}
+
 void setup() {
     srand(time(NULL));
     // don't kill process
     signal(SIGPIPE, SIG_IGN);
+    signal(SIGINT, interruptHandler);
 }
+
+client_config_t default_config();
 
 int main(int argc, char **argv) {
     setup();
@@ -97,11 +106,27 @@ int main(int argc, char **argv) {
 
     printf("File name: %s\n", torrent.info.file_name);
 
-    start_trackers(&torrent);
+    client_t client;
+    client_init(&client, default_config(), &torrent);
 
-    while (true) {
+    client_init_trackers(&client);
+    client_start_trackers(&client);
+    while (continueRunning) {
         sleep(1);
+        printf("Number of peers: %d\n", list_len(client.peers));
     }
+    printf("Stopping!\n");
+    client_stop_trackers(&client, false);
+
+    sleep(2); // give people time to wrap up
+    printf("Goodbye\n");
 
     return 0;
+}
+
+client_config_t default_config() {
+    client_config_t cfg;
+    cfg.tracker_poll_frequency = 30;
+
+    return cfg;
 }

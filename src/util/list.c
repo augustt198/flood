@@ -3,11 +3,12 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <string.h>
+#include <stdio.h>
 
 void list_new(list_t *list, int elem_size) {
-    list->head      = 0;
-    list->tail      = 0;
-    list->curr_node = 0;
+    list->head      = NULL;
+    list->tail      = NULL;
+    list->curr_node = NULL;
     list->elem_size = elem_size;
     list->len       = 0;
     pthread_mutex_init(&(list->mutex), NULL);
@@ -23,7 +24,9 @@ bool list_empty(list_t *list) {
 
 list_node *create_node(list_t *list, void *data) {
     list_node *node = malloc(sizeof(list_node));
-    node->data = malloc(sizeof(list->elem_size));
+    node->data = malloc(list->elem_size);
+    node->prev = NULL;
+    node->next = NULL;
     memcpy(node->data, data, list->elem_size);
 
     return node;
@@ -37,11 +40,11 @@ void list_append(list_t *list, void *data) {
     if (list->len == 0) {
         list->head = new_node;
         list->tail = new_node;
-        new_node->next = 0;
-        new_node->prev = 0;
+        new_node->next = NULL;
+        new_node->prev = NULL;
     } else {
         list->tail->next = new_node;
-        new_node->next = 0;
+        new_node->next = NULL;
         new_node->prev = list->tail;
 
         list->tail = new_node;
@@ -72,7 +75,6 @@ void list_prepend(list_t *list, void *data) {
     list->len++;
 
     pthread_mutex_unlock(&(list->mutex));
-
 }
 
 
@@ -124,11 +126,11 @@ bool list_truncate(list_t *list) {
 
     list_node *del_node = list->tail;
     if (list->len == 1) {
-        list->head = 0;
-        list->tail = 0;
+        list->head = NULL;
+        list->tail = NULL;
     } else {
         list->tail = del_node->prev;
-        del_node->prev->next = 0;
+        del_node->prev->next = NULL;
     }
 
     free(del_node);
@@ -178,12 +180,17 @@ void list_iter_start(list_t *list) {
     list->curr_node = list->head;
 }
 
+void list_iter_start_safe(list_t *list) {
+    pthread_mutex_lock(&(list->mutex));
+    list->curr_node = list->head;
+}
+
 bool list_iter_has_next(list_t *list) {
-    return list->curr_node != 0;
+    return list->curr_node != NULL;
 }
 
 bool list_iter_next(list_t *list, void *data) {
-    if (list->curr_node == 0) {
+    if (list->curr_node == NULL) {
         return false;
     }
 
@@ -191,4 +198,8 @@ bool list_iter_next(list_t *list, void *data) {
     list->curr_node = list->curr_node->next;
 
     return true;
+}
+
+void list_iter_stop_safe(list_t *list) {
+    pthread_mutex_unlock(&(list->mutex));
 }

@@ -1,7 +1,5 @@
 #pragma once
 
-#include "tracker.h"
-
 typedef struct file_info {
     char *file_name;
     int  length;
@@ -33,11 +31,9 @@ typedef struct torrent {
     
     int  tracker_count;
     char **tracker_urls;
-    tracker_t *trackers;
 } torrent_t;
 
 int torrent_init_from_file(char *filepath, torrent_t *t);
 
 int torrent_init_from_magnet(char *magnet);
 
-void start_trackers(torrent_t *t);
