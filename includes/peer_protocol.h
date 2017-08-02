@@ -4,6 +4,7 @@
 #include <sys/socket.h>
 
 #define PEER_PROTOCOL_LEN 19
+#define PEER_PROTOCOL_STR "BitTorrent protocol"
 
 typedef struct peer_handshake {
     uint8_t pstrlen;
@@ -55,9 +56,9 @@ typedef struct peer_message {
     };
 } peer_message;
 
-ssize_t send_handshake_request(peer_handshake *req, int sock, struct sockaddr *addr);
+ssize_t send_peer_handshake(peer_handshake *req, int sock, struct sockaddr *addr);
 
-ssize_t receive_handshake_request(peer_handshake *res, int sock, struct sockaddr *addr, uint8_t pstrlen);
+ssize_t receive_peer_handshake(peer_handshake *res, int sock, struct sockaddr *addr);
 
 ssize_t send_peer_message(peer_message *msg, int sock, struct sockaddr *addr);
 ssize_t receive_peer_message(peer_message *msg, int sock, struct sockaddr *addr);

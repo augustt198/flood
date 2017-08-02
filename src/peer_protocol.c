@@ -9,7 +9,7 @@
 
 #include "net.h"
 
-ssize_t send_handshake_request(peer_handshake *req, int sock, struct sockaddr *addr) {
+ssize_t send_peer_handshake(peer_handshake *req, int sock, struct sockaddr *addr) {
     int buflen = 49 + req->pstrlen;
     char buffer[buflen];
 
@@ -22,23 +22,21 @@ ssize_t send_handshake_request(peer_handshake *req, int sock, struct sockaddr *a
     return sendto(sock, buffer, buflen, 0, addr, sizeof(*addr));
 }
 
-ssize_t receive_handshake_request(peer_handshake *res, int sock, struct sockaddr *addr, uint8_t pstrlen) {
+ssize_t receive_peer_handshake(peer_handshake *res, int sock, struct sockaddr *addr) {
+    uint8_t pstrlen = 19;
     int buflen = 1 + pstrlen + 8 + 20 + 20;
     char buffer[buflen];
     memset(buffer, 0, buflen);
 
     ssize_t size = recv(sock, buffer, buflen, 0);
-    if (size != buflen) {
-        //return size;
-    }
 
     res->pstrlen = buffer[0];
     res->pstr    = calloc(1, pstrlen+1); // additional byte for \0
     memcpy(res->pstr, buffer+1, pstrlen);
     res->reserved = ntohll(*((uint64_t*) (buffer+pstrlen)));
 
-    memcpy(res->info_hash, buffer + pstrlen + 8, 20);
-    memcpy(res->peer_id, buffer + pstrlen + 8 + 20, 20);
+    memcpy(res->info_hash, buffer + 1 + pstrlen + 8, 20);
+    memcpy(res->peer_id, buffer + 1 + pstrlen + 8 + 20, 20);
 
     return size;
 }
@@ -86,7 +84,7 @@ ssize_t send_peer_message(peer_message *msg, int sock, struct sockaddr *addr) {
     sb += sendto(sock, &network_msg_length, 4, 0, addr, sizeof(*addr));
     if (msg_length == 0)
         return sb;
-    
+
     sb += send(sock, &msg_id, 1, 0);
     if (msg->type == PEER_MSG_HAVE) {
         uint32_t network_piece_index = htonl(msg->msg_request.piece_index);

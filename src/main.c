@@ -111,8 +111,9 @@ int main(int argc, char **argv) {
 
     client_init_trackers(&client);
     client_start_trackers(&client);
+    client_start_peer_threads(&client);
     while (continueRunning) {
-        sleep(1);
+        sleep(2);
         printf("Number of peers: %d\n", list_len(client.peers));
     }
     printf("Stopping!\n");
@@ -127,6 +128,9 @@ int main(int argc, char **argv) {
 client_config_t default_config() {
     client_config_t cfg;
     cfg.tracker_poll_frequency = 30;
+    cfg.peer_threads = 20;
+    cfg.peer_timeout = 3;
+    memcpy(cfg.peer_id, "CUSTOMCLIENT12345678", 20);
 
     return cfg;
 }
