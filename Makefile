@@ -1,5 +1,5 @@
 CC=clang
-CFLAGS=-Wall -Werror -Wno-error=unused-variable -g -luriparser -lpthread -lcurl -lcrypto -D__FLOOD_DEBUG
+CFLAGS=-Wall -Werror -Wno-error=unused-variable -g -luriparser -lpthread -lcurl -lcrypto -D__FLOOD_DEBUG -D_GNU_SOURCE
 LD=clang++
 
 UNAME := $(shell uname)
