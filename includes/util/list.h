@@ -54,11 +54,21 @@ void list_each(list_t *list, int (*fn)(int, void *));
 // into `list`, `false` if not.
 bool list_get(list_t *list, int idx, void *data);
 
+// starts iteration at the first element
 void list_iter_start(list_t *list);
+
+// Starts iteration at the first element and locks
+// the list mutex.
 void list_iter_start_safe(list_t *list);
 
+// Checks whether there are any remaining
+// elements to iterate through.
 bool list_iter_has_next(list_t *list);
 
+// Fetches the next element in the current
+// iteration and places it in `data`.
 bool list_iter_next(list_t *list, void *data);
 
+// Unlocks the list mutex after iteration is complete.
+// MUST be called if `list_iter_start_safe` is used.
 void list_iter_stop_safe(list_t *list);
