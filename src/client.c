@@ -4,6 +4,7 @@
 #include <unistd.h>
 #include <string.h>
 #include <arpa/inet.h>
+#include <time.h>
 
 #include "peer_protocol.h"
 #include "util.h"
@@ -71,6 +72,8 @@ void client_find_peer(discovered_peer_t new_peer, void *handle) {
     peer_t *peer = malloc(sizeof(peer_t));
     peer->ip_address = new_peer.ip;
     peer->port       = new_peer.port;
+    peer->choking    = false;
+    peer->interested = false;
     list_append(c->peers, &peer);
 }
 
@@ -131,6 +134,16 @@ void peer_communication(peer_t *peer, client_t *client) {
     char *peer_name = NULL;
     peer_id_friendly(handshake_in.peer_id, &peer_name);
     if (peer_name == NULL) peer_name = "Unknown";
+
+    while (true) {
+        peer_message msg;
+        receive_peer_message(&msg, sock, (struct sockaddr*) &addr);
+        print_peer_message(&msg);
+        struct timespec ts;
+        ts.tv_sec = 0;
+        ts.tv_nsec = 100000000;
+        nanosleep(&ts, NULL);
+    }
 
     printf("Connected to peer: %s\n", peer_name);
 }

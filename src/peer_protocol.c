@@ -183,3 +183,31 @@ ssize_t receive_peer_message(peer_message *msg, int sock, struct sockaddr *addr)
 
     return rb;
 }
+
+void print_peer_message(peer_message *msg) {
+    printf("Message: ");
+    enum peer_message_type t = msg->type;
+    if (t == PEER_MSG_KEEPALIVE)
+        printf("keep alive");
+    if (t == PEER_MSG_CHOKE)
+        printf("choke");
+    if (t == PEER_MSG_UNCHOKE)
+        printf("unchoke");
+    if (t == PEER_MSG_INTERESTED)
+        printf("interested");
+    if (t == PEER_MSG_NOTINTERESTED)
+        printf("not interested");
+    if (t == PEER_MSG_HAVE)
+        printf("have");
+    if (t == PEER_MSG_BITFIELD)
+        printf("bitfield");
+    if (t == PEER_MSG_REQUEST)
+        printf("request");
+    if (t == PEER_MSG_PIECE)
+        printf("piece");
+    if (t == PEER_MSG_CANCEL)
+        printf("cancel");
+    if (t == PEER_MSG_UNKNOWN)
+        printf("unknown");
+    printf("\n");
+}

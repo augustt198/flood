@@ -62,3 +62,5 @@ ssize_t receive_peer_handshake(peer_handshake *res, int sock, struct sockaddr *a
 
 ssize_t send_peer_message(peer_message *msg, int sock, struct sockaddr *addr);
 ssize_t receive_peer_message(peer_message *msg, int sock, struct sockaddr *addr);
+
+void print_peer_message(peer_message *msg);
