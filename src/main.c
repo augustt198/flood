@@ -105,6 +105,19 @@ int main(int argc, char **argv) {
     }
 
     printf("File name: %s\n", torrent.info.file_name);
+    if (torrent.info.mode == MULTI_FILE_MODE) {
+        printf("Files (%d):\n", torrent.info.file_count);
+        for (int i = 0; i < torrent.info.file_count; i++) {
+            file_info_t f = torrent.info.files[i];
+            printf(" * ");
+            for (int j = 0; j < f.path_segments; j++) {
+                printf("%s", f.path[j]);
+                if (j < f.path_segments - 1)
+                    printf("/");
+            }
+            printf("\n");
+        }
+    }
 
     client_t client;
     client_init(&client, default_config(), &torrent);

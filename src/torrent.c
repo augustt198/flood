@@ -98,6 +98,9 @@ void prepare_trackers(bencode_value *bencode, torrent_t *t) {
 int prepare_info_section(bencode_value *bencode, torrent_t *t) {
     info_section_t *info = &(t->info);
 
+    // defaults
+    info->file_name = NULL;
+
     bencode_value *b_info;
     if (!hashtable_get(bencode->dict, "info", (void**) &b_info))
         return -1;
@@ -109,8 +112,50 @@ int prepare_info_section(bencode_value *bencode, torrent_t *t) {
     bencode_value *b_files;
     if (hashtable_get(b_info->dict, "files", (void**) &b_files)) {
         info->mode = MULTI_FILE_MODE;
+
+        info->file_count = list_len(b_files->list);
+        info->files = malloc(info->file_count * sizeof(file_info_t));
+        int file_idx = 0;
+        list_iter_start(b_files->list);
+        while (list_iter_has_next(b_files->list)) {
+            file_info_t *file_info = &(info->files[file_idx]);
+
+            bencode_value *b_curr_file;
+            list_iter_next(b_files->list, (void*) &b_curr_file);
+
+            bencode_value *b_file_length;
+            if (!hashtable_get(b_curr_file->dict, "length", (void**) &b_file_length)) {
+                return -1;
+            }
+            file_info->length = (int) b_file_length->integer;
+
+            bencode_value *b_path_list;
+            if (!hashtable_get(b_curr_file->dict, "path", (void**) &b_path_list)) {
+                return -1;
+            }
+            if (list_len(b_path_list->list) == 0) {
+                return -1;
+            }
+            file_info->path_segments = list_len(b_path_list->list);
+            file_info->path = malloc(sizeof(char*) * file_info->path_segments);
+            list_iter_start(b_path_list->list);
+            int path_idx = 0;
+            while (list_iter_has_next(b_path_list->list)) {
+                bencode_value *b_path_str;
+                list_iter_next(b_path_list->list, (void*) &b_path_str);
+                file_info->path[path_idx] = b_path_str->string.ptr;
+                path_idx++;
+            }
+
+            file_idx++;
+        }
     } else {
         info->mode = SINGLE_FILE_MODE;
+        bencode_value *b_file_length;
+        if (!hashtable_get(b_info->dict, "length", (void**) &b_file_length)) {
+            return -1;
+        }
+        info->file_length = (int) b_file_length->integer;
     }
 
     return 0;
