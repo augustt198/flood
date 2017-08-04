@@ -86,7 +86,7 @@ ssize_t receive_announce_response(udpt_announce_resp *res, int sock) {
         }
 
         next_peer->ip   = ntohl(*((uint32_t*) (buffer + i + 0)));
-        next_peer->port = ntohs(*((uint32_t*) (buffer + i + 4)));
+        next_peer->port = ntohs(*((uint16_t*) (buffer + i + 4)));
 
         peer = next_peer;
     }
