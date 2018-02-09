@@ -104,6 +104,7 @@ void peer_communication(peer_t *peer, client_t *client) {
 
     if (connect(sock, (struct sockaddr*) &addr, sizeof(addr)) == -1) {
         peer->status = PEER_STATUS_BAD;
+        printf("bad peer yo\n");
         return;
     }
 
@@ -135,17 +136,22 @@ void peer_communication(peer_t *peer, client_t *client) {
     peer_id_friendly(handshake_in.peer_id, &peer_name);
     if (peer_name == NULL) peer_name = "Unknown";
 
+    printf("Connected to peer: %s\n", peer_name);
+
     while (true) {
         peer_message msg;
         receive_peer_message(&msg, sock, (struct sockaddr*) &addr);
+        printf("[%s] ", peer_name);
         print_peer_message(&msg);
+        if (msg.type == PEER_MSG_HAVE) {
+            printf("HAVE PIECE: index: %u\n", msg.msg_have.piece_index);
+        }
         struct timespec ts;
         ts.tv_sec = 0;
         ts.tv_nsec = 100000000;
         nanosleep(&ts, NULL);
     }
 
-    printf("Connected to peer: %s\n", peer_name);
 }
 
 void *peer_thread_routine(void *handle) {

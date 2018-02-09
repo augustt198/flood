@@ -127,7 +127,17 @@ int main(int argc, char **argv) {
     client_start_peer_threads(&client);
     while (continueRunning) {
         sleep(2);
-        printf("Number of peers: %d\n", list_len(client.peers));
+
+        int unchecked = 0;
+        list_iter_start_safe(client.peers);
+        while (list_iter_has_next(client.peers)) {
+            peer_t *p;
+            list_iter_next(client.peers, (void*) &p);
+            if (p->status == PEER_STATUS_NEW)
+                unchecked++;
+        }
+        list_iter_stop_safe(client.peers);
+        printf("%d peers, %d unchecked\n", list_len(client.peers), unchecked);
     }
     printf("Stopping!\n");
     client_stop_trackers(&client, false);
