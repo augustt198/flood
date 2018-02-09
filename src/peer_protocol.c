@@ -179,6 +179,7 @@ ssize_t receive_peer_message(peer_message *msg, int sock, struct sockaddr *addr)
         recv(sock, msg->msg_piece.data, piece_length, 0);
     } else {
         msg->type = PEER_MSG_UNKNOWN;
+        printf("GOT UNKNOWN MESSAGE TYPE ID: %d / [len %u]\n", msg_type, length_prefix);
     }
 
     return rb;
@@ -207,7 +208,8 @@ void print_peer_message(peer_message *msg) {
         printf("piece");
     if (t == PEER_MSG_CANCEL)
         printf("cancel");
-    if (t == PEER_MSG_UNKNOWN)
+    if (t == PEER_MSG_UNKNOWN) {
         printf("unknown");
+    }
     printf("\n");
 }

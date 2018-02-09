@@ -45,8 +45,8 @@ int uri_query(uri_query_list_t **dst, uri_t *uri, int *items) {
     );
 }
 
-uri_query_list_t *uri_query_list_append(char *key, char *value,
-    uri_query_list_t *dst, uri_query_list_t *prev) {
+uri_query_list_t *uri_query_list_append(char *key, char *value, uri_query_list_t *prev) {
+    uri_query_list_t *dst = malloc(sizeof(uri_query_list_t));
 
     dst->key   = key;
     dst->value = value;
@@ -66,9 +66,29 @@ int uri_to_string(uri_t *uri, char **dst) {
 
     len++; // trailing '\0'
 
-    *dst = malloc(len);
+    *dst = calloc(1, len);
     if (uriToStringA(*dst, uri, len, NULL) != URI_SUCCESS)
         return -1;
 
     return len - 1;
+}
+
+void uri_free_members(uri_t *uri) {
+    uriFreeUriMembersA(uri);
+}
+
+int uri_set_query(uri_t *uri, uri_query_list_t *query) {
+    return 0;
+}
+
+UriTextRangeA str2textrange(char *str) {
+    UriTextRangeA text;
+    text.first = str;
+
+    char *last = str;
+    while (*last != '\0') last++;
+    text.afterLast = last;
+
+    return text;
+    
 }

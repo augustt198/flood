@@ -1,9 +1,11 @@
 #pragma once
 
+#include "util/uri_util.h"
+#include "torrent.h"
+
 #include <pthread.h>
 #include <stdbool.h>
 #include <stdint.h>
-#include "torrent.h"
 
 typedef struct discovered_peer {
     int ip;
@@ -16,10 +18,11 @@ typedef void (*tracker_find_peer_fn)(discovered_peer_t peer, void *handle);
 
 typedef struct tracker {
     char *url;
+    uri_t uri;
     tracker_stop_fn stop_fn;
 
     torrent_t *torrent;
-    
+
     // passed as parameter to find_fn
     void *find_fn_handle;
     tracker_find_peer_fn find_fn;

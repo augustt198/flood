@@ -7,13 +7,15 @@
 #include "torrent.h"
 #include "util.h"
 #include "udp_protocol.h"
+#include "http_protocol.h"
 #include "net.h"
 #include "list.h"
 
-int tracker_announce(tracker_t *t) {
+int tracker_announce_udp(tracker_t *t) {
     torrent_t *torrent = (torrent_t*) t->torrent;
 
     if (t->sock_fd == -1) {
+        printf("THE URL %s\n", t->url);
         int res = create_udp_socket(t->url, &(t->sock_fd), &(t->addr));
         if (res != 0) {
             return res;
@@ -74,6 +76,43 @@ int tracker_announce(tracker_t *t) {
     return 0;
 }
 
+int tracker_announce_http(tracker_t *tracker) {
+    torrent_t *torrent = (torrent_t*) tracker->torrent;
+
+    http_tracker_request_t req;
+    bzero(&req, sizeof(req));
+    memcpy(req.info_hash, torrent->info_hash, 20);
+    memcpy(req.peer_id, "CUSTOMCLIENT12345678", 20);
+    
+    req.port = 0;
+    req.ip = "0.0.0.0";
+    req.compact = true;
+    req.uploaded = 0;
+    req.downloaded = 0;
+    req.left = 0;
+    req.numwant = 21;
+
+    http_tracker_response_t res;
+    http_tracker_request(tracker->uri, &req, &res);
+
+    return 0;
+}
+
+int tracker_announce(tracker_t *t) {
+    uri_t uri;
+    parse_uri(&uri, t->url);
+    char *scheme = uri_scheme(&uri);
+    if (strcmp(scheme, "udp") == 0) {
+        tracker_announce_udp(t);
+    } else if (strcmp(scheme, "http") == 0) {
+        tracker_announce_http(t);
+    } else {
+        printf("Unknown tracker scheme!");
+    }
+
+    return -1;
+}
+
 void *tracker_update_routine(void *arg) {
     tracker_t *t = (tracker_t*) arg;
     printf("START\n");
@@ -97,6 +136,8 @@ bool tracker_start(tracker_t *t) {
     if (t->update_thread == NULL) {
         pthread_t *thread = malloc(sizeof(pthread_t));
         t->update_thread = thread;
+        parse_uri(&(t->uri), t->url);
+
         pthread_create(thread, NULL, tracker_update_routine, t);
 
         return true;
