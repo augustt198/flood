@@ -74,6 +74,10 @@ void client_find_peer(discovered_peer_t new_peer, void *handle) {
     peer->port       = new_peer.port;
     peer->choking    = false;
     peer->interested = false;
+
+    peer->bitfield_length = 0;
+    peer->bitfield        = NULL;
+
     list_append(c->peers, &peer);
 }
 
@@ -143,9 +147,23 @@ void peer_communication(peer_t *peer, client_t *client) {
         receive_peer_message(&msg, sock, (struct sockaddr*) &addr);
         printf("[%s] ", peer_name);
         print_peer_message(&msg);
-        if (msg.type == PEER_MSG_HAVE) {
-            printf("HAVE PIECE: index: %u\n", msg.msg_have.piece_index);
+
+        if (msg.type == PEER_MSG_BITFIELD) {
+            printf(">>>> GOT BITFIELD MESSAGE. length %d\n", msg.msg_bitfield.bitfield_length);
+            peer_update_bitfield(peer, msg.msg_bitfield.bitfield,
+                msg.msg_bitfield.bitfield_length);
+        } else if (msg.type == PEER_MSG_HAVE) {
+            peer_update_bitfield_index(peer, msg.msg_have.piece_index, true); 
+        } else if (msg.type == PEER_MSG_CHOKE) {
+            peer->choking = true;
+        } else if (msg.type == PEER_MSG_UNCHOKE) {
+            peer->choking = false; 
+        } else if (msg.type == PEER_MSG_INTERESTED) {
+            peer->interested = true;
+        } else if (msg.type == PEER_MSG_NOTINTERESTED) {
+            peer->interested = false;
         }
+
         struct timespec ts;
         ts.tv_sec = 0;
         ts.tv_nsec = 100000000;
@@ -181,7 +199,52 @@ void *peer_thread_routine(void *handle) {
         }
         printf("im still alive\n");
 
+        int have, total;
+        calculate_total_availability(c, &have, &total);
+
+        printf("=========== SWARM AVAILABILITY %d / %d\n", have, total);
     }
 
+
     return NULL;
+}
+
+// using each peer's bitfield 
+void calculate_total_availability(client_t *c, int *p_have, int *p_total) {
+    uint8_t *master_bitfield = NULL;
+    uint32_t master_len = 0;
+
+    // OR all the bitfields together
+
+    list_iter_start_safe(c->peers);
+    while (list_iter_has_next(c->peers)) {
+        peer_t *p;
+        list_iter_next(c->peers, &p);
+
+        if (p->bitfield_length < 1 || p->bitfield == NULL)
+            continue;
+
+        if (master_bitfield == NULL) {
+            master_bitfield = calloc(1, p->bitfield_length); 
+            master_len = p->bitfield_length;
+        }
+ 
+        if (p->bitfield_length == master_len) {
+            for (int i = 0; i < master_len; i++) {
+                master_bitfield[i] |= p->bitfield[i];
+            }
+        }
+    }
+    list_iter_stop_safe(c->peers);
+
+    int have = 0;
+    for (int i = 0; i < master_len; i++) {
+        uint8_t byte = master_bitfield[i];
+        for (int j = 0; j < 8; j++) {
+            have += (byte >> j) & 0x01;
+        }
+    }
+
+    *p_have = have;
+    *p_total = master_len * 8;
 }

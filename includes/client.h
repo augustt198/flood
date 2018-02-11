@@ -28,3 +28,5 @@ void client_start_peer_threads(client_t *c);
 
 
 void client_find_peer(discovered_peer_t, void *handle);
+
+void calculate_total_availability(client_t *c, int *p_have, int *p_total);

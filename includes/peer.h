@@ -1,6 +1,7 @@
 #pragma once
 
-#include <stdlib.h>
+#include <stdint.h>
+#include <stdbool.h>
 
 enum peer_status {
     PEER_STATUS_NEW,
@@ -26,3 +27,6 @@ typedef struct peer {
     // which tracker it was discovered through
     char *origin_tracker;
 } peer_t;
+
+void peer_update_bitfield(peer_t *peer, uint8_t *new_bitfield, uint32_t new_len);
+void peer_update_bitfield_index(peer_t *peer, uint32_t idx, bool newval);
