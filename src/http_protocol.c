@@ -106,7 +106,6 @@ int http_tracker_request(uri_t uri, http_tracker_request_t *req, http_tracker_re
     if (curl_rescode == CURLE_OK) {
         printf("CURL http request completed succesfully\n");
         printf("Some of the string: %.30s\n", curlbuf.data);
-        return;
     } else {
         printf("CURL error: %s\n", curl_easy_strerror(curl_rescode));
     }
