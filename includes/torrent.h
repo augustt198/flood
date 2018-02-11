@@ -8,9 +8,9 @@ typedef struct file_info {
 } file_info_t;
 
 typedef struct info_section_t {
-    int piece_length;
-    int pieces_bytes;
-    char *pieces;
+    int piece_length; // how many bytes/piece
+    int npieces;
+    char *pieces; // string of pieces
 
     enum { SINGLE_FILE_MODE, MULTI_FILE_MODE } mode;
     char *file_name;

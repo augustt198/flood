@@ -96,14 +96,23 @@ void prepare_trackers(bencode_value *bencode, torrent_t *t) {
 // Loads info section of `bencode` into `t`
 // returns: 0 if successful
 int prepare_info_section(bencode_value *bencode, torrent_t *t) {
+    printf("INFO SECTION:\n");
+    bencode_debug(bencode);
+
     info_section_t *info = &(t->info);
 
     // defaults
     info->file_name = NULL;
+    info->pieces = NULL;
 
     bencode_value *b_info;
     if (!hashtable_get(bencode->dict, "info", (void**) &b_info))
         return -1;
+
+    bencode_value *b_piece_length;
+    if (!hashtable_get(b_info->dict, "piece length", (void**) &b_piece_length)) {
+        info->piece_length = (int) b_piece_length->integer;
+    }
 
     bencode_value *b_name;
     if (hashtable_get(b_info->dict, "name", (void**) &b_name)) {
